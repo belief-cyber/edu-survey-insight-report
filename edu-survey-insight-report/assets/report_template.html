@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학술정보교육 통합분석 보고서</title>
+<style>
+:root{
+  --bg:#eef0f3;--page:#ffffff;--ink:#1e2a3a;--ink2:#4a5566;--ink3:#7d8796;--line:#e3e8ef;--soft:#f6f7f9;
+  --navy:#1e2a3a;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#6250d6;
+  --fact:#0e7a52;--factbg:#e8f6ef;--ai:#5b3fc4;--aibg:#f1edfd;--live:#1c5cab;--livebg:#e7f0fc;--warn:#9a5b00;--warnbg:#fff4dc;--crit:#b3261e;--critbg:#fdecea;
+  --l1:#c43c3b;--l2:#ef9a99;--l3:#bdbbb4;--l4:#86b6ef;--l5:#2a78d6;
+  --q1:#3b82f6;--q2:#ef4444;--q3:#8b5cf6;--q4:#f59e0b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121417;--page:#1a1c20;--ink:#eceef1;--ink2:#c2c7cf;--ink3:#8f96a1;--line:#30343b;--soft:#22252a;--navy:#0f1620;
+    --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#9085e9;
+    --fact:#5fd3a0;--factbg:#173328;--ai:#b9a8ff;--aibg:#2a2340;--live:#8cbcf5;--livebg:#1b2a40;--warn:#f2c46b;--warnbg:#3a2e14;--crit:#ff8a80;--critbg:#3d1d1b;
+    --l1:#e66767;--l2:#a85454;--l3:#6d6c66;--l4:#3e6aa0;--l5:#3987e5;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121417;--page:#1a1c20;--ink:#eceef1;--ink2:#c2c7cf;--ink3:#8f96a1;--line:#30343b;--soft:#22252a;--navy:#0f1620;
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#9085e9;
+  --fact:#5fd3a0;--factbg:#173328;--ai:#b9a8ff;--aibg:#2a2340;--live:#8cbcf5;--livebg:#1b2a40;--warn:#f2c46b;--warnbg:#3a2e14;--crit:#ff8a80;--critbg:#3d1d1b;
+  --l1:#e66767;--l2:#a85454;--l3:#6d6c66;--l4:#3e6aa0;--l5:#3987e5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7;padding:28px 16px 80px;word-break:keep-all}
+.page{max-width:1180px;margin:0 auto;background:var(--page);border-radius:16px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.08)}
+header.top{background:var(--navy);color:#fff;padding:36px 48px 30px}
+header.top .sub{font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.04em}
+header.top h1{font-size:23px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+header.top p{color:rgba(255,255,255,.75);font-size:13px;margin-top:8px;max-width:820px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.pill{font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:.5px solid rgba(255,255,255,.18)}
+nav.toc{position:sticky;top:0;z-index:20;background:var(--page);border-bottom:1px solid var(--line);display:flex;gap:2px;overflow-x:auto;padding:0 32px;scrollbar-width:thin}
+nav.toc a{flex-shrink:0;font-size:12.5px;color:var(--ink2);text-decoration:none;padding:12px 10px;border-bottom:2px solid transparent;white-space:nowrap}
+nav.toc a:hover,nav.toc a.on{color:var(--ink);border-bottom-color:var(--s1)}
+.themebtn{margin-left:auto;flex-shrink:0;border:1px solid var(--line);background:var(--soft);color:var(--ink2);border-radius:6px;font-size:12px;padding:4px 10px;margin-top:8px;margin-bottom:8px;cursor:pointer}
+main{padding:36px 48px}
+section{margin-bottom:56px;scroll-margin-top:60px}
+.sec-h{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.num{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+:root[data-theme="dark"] .num{background:#33507a}
+.sec-h h2{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.sec-h .en{font-size:11px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
+.lead{color:var(--ink2);font-size:13.5px;margin:4px 0 20px 42px;max-width:900px}
+h3{font-size:15px;margin:26px 0 10px;letter-spacing:-.01em}
+h4{font-size:13.5px;margin-bottom:6px}
+p{margin-bottom:8px}
+.muted{color:var(--ink3);font-size:12.5px}
+.small{font-size:12.5px}
+/* badges */
+.b{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
+.b-fact{background:var(--factbg);color:var(--fact)}.b-ai{background:var(--aibg);color:var(--ai)}.b-live{background:var(--livebg);color:var(--live)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-crit{background:var(--critbg);color:var(--crit)}.b-fix{background:var(--soft);color:var(--ink2);border:1px solid var(--line)}
+.legendbar{display:flex;flex-wrap:wrap;gap:14px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--ink2);margin-bottom:28px}
+.legendbar span{display:flex;align-items:center;gap:6px}
+/* cards */
+.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--page);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.card.soft{background:var(--soft)}
+.card.ai{border-left:3px solid var(--ai)}.card.fact{border-left:3px solid var(--fact)}
+.answer{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.answer .row{display:grid;grid-template-columns:120px 1fr;border-top:1px solid var(--line)}
+.answer .row:first-child{border-top:0}
+.answer .k{background:var(--soft);padding:14px 16px;font-weight:700;font-size:13px}
+.answer .v{padding:14px 18px}
+.answer ul{padding-left:18px}.answer li{margin-bottom:4px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
+.kpi{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:11.5px;color:var(--ink3)}.kpi .v{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi .s{font-size:11px;color:var(--ink3)}
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:6px}
+.filters label{display:flex;flex-direction:column;font-size:11.5px;color:var(--ink3);gap:3px}
+select,input[type=search]{font:inherit;font-size:13px;color:var(--ink);background:var(--page);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:120px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-size:12.5px;border:0;background:var(--page);color:var(--ink2);padding:6px 10px;cursor:pointer}
+.seg button.on{background:var(--s1);color:#fff}
+.btn{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--page);color:var(--ink2);border-radius:6px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--s1);color:var(--ink)}
+.scope{font-size:12px;color:var(--live);background:var(--livebg);border-radius:6px;padding:6px 10px;margin:8px 0 4px}
+.warnbox{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:12.5px;margin:10px 0}
+.chartbox{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--page)}
+.chartbox h4{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.chartbox svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--ink2);font-size:11.5px;font-family:inherit}
+svg .val{fill:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .hit{fill:transparent;cursor:pointer}
+svg .hit:hover+rect,svg g.bar:hover rect.m{opacity:.8}
+.lk{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--ink2);margin-top:8px}
+.lk i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+/* table */
+.tablewrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--soft);font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap;z-index:1}
+th.nosort{cursor:default}
+td.n{text-align:right}
+tbody tr:hover{background:var(--soft)}
+tr.click{cursor:pointer}
+.static th{position:static;cursor:default}
+/* tooltip */
+#tip{position:fixed;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;padding:8px 10px;border-radius:6px;max-width:300px;z-index:100;opacity:0;transition:opacity .1s;line-height:1.5}
+/* evidence chips + drawer */
+.ev{font:inherit;font-size:11.5px;border:1px solid var(--line);background:var(--soft);color:var(--live);border-radius:12px;padding:1px 9px;cursor:pointer;margin:2px 2px 2px 0;white-space:nowrap}
+.ev:hover{border-color:var(--s1)}
+#drawer{position:fixed;top:0;right:0;width:min(520px,100%);height:100%;background:var(--page);border-left:1px solid var(--line);box-shadow:-8px 0 30px rgba(0,0,0,.15);transform:translateX(105%);transition:transform .2s;z-index:90;display:flex;flex-direction:column}
+#drawer.open{transform:none}
+#drawer .dh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+#drawer .db{padding:16px 20px;overflow:auto;flex:1}
+.quote{border:1px solid var(--line);border-left:3px solid var(--s1);border-radius:8px;padding:10px 12px;margin-bottom:10px;background:var(--page)}
+.quote .m{font-size:11px;color:var(--ink3);margin-bottom:4px;display:flex;flex-wrap:wrap;gap:6px}
+.quote .t{font-size:13px}
+.ctag{font-size:10.5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--ink2)}
+/* design thinking blocks (from base report) */
+.issue-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.issue-card{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:16px 18px;border-left:3px solid #b0bac8}
+.issue-card.user{border-left-color:#3b82f6}.issue-card.need{border-left-color:#10b981}.issue-card.goal{border-left-color:#8b5cf6}.issue-card.prob{border-left-color:#ef4444}.issue-card.action{border-left-color:#f59e0b;grid-column:1/-1}
+.itag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 9px;border-radius:4px;margin-bottom:8px;background:var(--page);border:1px solid var(--line)}
+.persona{display:flex;gap:16px;border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--page)}
+.persona .av{flex-shrink:0;width:52px;height:52px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--ink2)}
+.ptag{display:inline-block;font-size:10.5px;background:var(--soft);color:var(--ink2);padding:2px 8px;border-radius:4px;margin:4px 4px 0 0}
+.emp-c{background:var(--navy);color:#fff;text-align:center;padding:12px;border-radius:10px 10px 0 0;font-weight:700;font-size:13px}
+.emp{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;overflow:hidden}
+.quad{padding:18px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.quad:nth-child(2n){border-right:0}.quad:nth-child(n+3){border-bottom:0}
+.qh{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.06em;margin-bottom:10px}
+.dot{width:10px;height:10px;border-radius:50%}
+.quad ul{list-style:none}.quad li{font-size:12.8px;padding:6px 0;border-bottom:1px solid var(--line)}.quad li:last-child{border-bottom:0}
+.pgn{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.pgn .card h4{font-size:12.5px;letter-spacing:.04em}
+.pp{border:1px solid var(--line);border-radius:10px;padding:16px 18px;border-top:4px solid var(--q4)}
+.pp.s2{border-top-color:var(--q2)}.pp.s3{border-top-color:var(--q3)}.pp.s4{border-top-color:var(--q1)}
+.strength{display:flex;gap:3px;align-items:center;font-size:11px;color:var(--ink3)}
+.strength i{width:14px;height:6px;border-radius:2px;background:var(--line)}
+.strength i.f{background:var(--s1)}
+.prob-stmt{display:flex;flex-wrap:wrap;gap:12px}
+.stmt{flex:1;min-width:230px;background:var(--page);border:1px solid var(--line);border-left:3px solid #3b82f6;border-radius:8px;padding:16px 18px}
+.stmt.need{border-left-color:#10b981}.stmt.why{border-left-color:#ef4444}
+.stmt .lab{font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px}
+.hmw{display:flex;gap:16px;border:1px solid var(--line);border-left:4px solid #10b981;border-radius:8px;padding:16px 20px;margin-bottom:10px;align-items:flex-start}
+.hmw .hn{font-size:12px;font-weight:700;color:var(--ink3);flex-shrink:0;width:30px}
+.hmw p.q{font-size:14.5px;font-weight:700;color:#065f46;margin-bottom:6px}
+:root[data-theme="dark"] .hmw p.q{color:#7fe0b4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hmw p.q{color:#7fe0b4}}
+.rec{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.rec summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.rec summary::-webkit-details-marker{display:none}
+.rec summary .rt{font-weight:700;font-size:14px}
+.rec .rb{padding:4px 18px 16px;display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:13px}
+.rec .rb .k{color:var(--ink3);font-weight:700;font-size:12px}
+.tier{font-size:11px;font-weight:700;border-radius:4px;padding:2px 8px}
+.t1{background:var(--critbg);color:var(--crit)}.t2{background:var(--warnbg);color:var(--warn)}.t3{background:var(--soft);color:var(--ink2);border:1px solid var(--line)}.t0{background:var(--factbg);color:var(--fact)}
+.insight{border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.insight .ih{padding:14px 18px;background:var(--soft);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.insight .ih b{font-size:14.5px}
+.flow{display:grid;grid-template-columns:repeat(5,1fr)}
+.flow>div{padding:12px 14px;border-right:1px solid var(--line);font-size:12.8px}
+.flow>div:last-child{border-right:0}
+.flow .fl{font-size:10.5px;font-weight:700;color:var(--ink3);letter-spacing:.04em;margin-bottom:4px;display:block}
+.flow .ai{background:var(--aibg)}
+.verify td,.verify th{font-size:12px}
+.ok{color:var(--fact);font-weight:700}
+footer{padding:20px 48px 30px;color:var(--ink3);font-size:12px;border-top:1px solid var(--line)}
+.only-print{display:none}
+@media screen and (max-width:820px){
+  main{padding:24px 18px}header.top{padding:28px 20px}nav.toc{padding:0 10px}
+  .g2,.g3,.g4,.issue-grid,.emp,.pgn{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.flow>div{border-right:0;border-bottom:1px solid var(--line)}
+  .quad{border-right:0!important;border-bottom:1px solid var(--line)!important}
+  .answer .row{grid-template-columns:1fr}.rec .rb{grid-template-columns:1fr}.lead{margin-left:0}
+}
+@media print{
+  @page{size:A4;margin:14mm 12mm}
+  body{background:#fff;padding:0;font-size:11.5px}
+  :root{--bg:#fff;--page:#fff}
+  .page{box-shadow:none;border-radius:0;max-width:none}
+  nav.toc,.filters .btn,#drawer,#tip,.noprint,.themebtn{display:none!important}
+  .only-print{display:block}
+  main{padding:10px 0}
+  header.top{padding:20px 22px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  section{break-before:page;margin-bottom:20px}
+  section#s0{break-before:auto}
+  .card,.insight,.rec,.persona,.hmw,.pp,.quote,.chartbox,.kpi,.issue-card,tr{break-inside:avoid}
+  .tablewrap{max-height:none;overflow:visible}
+  .rec .rb{display:grid!important}
+  details.rec>*:not(summary){display:grid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ev{border:0;background:none;padding:0;color:var(--ink3)}
+  #eduTbl{font-size:8.5px}#eduTbl td,#eduTbl th{padding:2px 4px;white-space:nowrap}
+  #eduTbl th{position:static}
+  #quoteList{max-height:none!important;overflow:visible!important}
+  .flow{grid-template-columns:repeat(5,1fr)}
+  .lead{margin-left:0}
+  h3{break-after:avoid}
+  #s3 .g2{grid-template-columns:1fr}
+}
+.hscroll{overflow-x:auto}
+.hscroll svg{display:block}
+tr.tgt td:first-child{font-weight:700;color:var(--s2)}
+@media print{.hscroll{overflow:visible}#quoteList .quote:nth-child(n+7){display:none}#quoteList::after{content:'(인쇄본에는 원문 6건까지만 표시 — 전체 원문은 화면에서 조회)';font-size:10px;color:#7d8796}}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="page">
+<header class="top">
+  <div class="sub" id="hSub"></div>
+  <h1 id="hTitle"></h1>
+  <p id="hPurpose"></p>
+  <div class="pills" id="pills"></div>
+</header>
+<nav class="toc" id="toc">
+  <a href="#s0">요약</a><a href="#s1">1 데이터·범위</a><a href="#s2">2 전체 교육 탐색</a><a href="#s2q">2-Q 주관식 탐색</a><a href="#s3">3 대상 교육 심층</a><a href="#s4">4 통합 인사이트</a><a href="#s5">5 이슈·유형·공감맵</a><a href="#s6">6 Pain Point·문제정의</a><a href="#s7">7 HMW</a><a href="#s8">8 개선 권고</a><a href="#s9">9 한계·검증</a>
+  <button class="themebtn" id="themebtn" type="button">화면 테마</button>
+</nav>
+<main>
+<div class="legendbar">
+  <span><b class="b b-fact">확인</b> 데이터에서 직접 확인된 사실·수치</span>
+  <span><b class="b b-ai">AI 해석</b> 담당자 관점의 추론(분석 범위 고정, 필터와 무관)</span>
+  <span><b class="b b-live">필터 연동</b> 선택에 따라 브라우저에서 즉시 재계산되는 통계</span>
+  <span><b class="b b-warn">해석 제한</b> 척도·표본 문제로 해석을 제한하는 항목</span>
+  <span>근거 버튼 <button class="ev" type="button" disabled>원문 3</button> 을 누르면 원문·응답ID를 조회합니다.</span>
+</div>
+
+<section id="s0">
+  <div class="sec-h"><div class="num">0</div><div><h2>핵심 답변</h2> <span class="en">Executive Summary</span></div></div>
+  <p class="lead" id="sumLead"></p>
+  <div class="answer" id="sumRows"></div>
+</section>
+
+<section id="s1">
+  <div class="sec-h"><div class="num">1</div><div><h2>데이터 확인 및 분석 범위</h2> <span class="en">Data & Scope</span></div></div>
+  <p class="lead" id="dataLead"></p>
+  <div class="kpis" id="dataKpis"></div>
+  <h3>분석 대상 <b class="b b-fact">확인</b></h3>
+  <div class="tablewrap" style="max-height:none"><table class="static" id="tgtMetaTbl"></table></div>
+  <h3>분석 전에 확인한 데이터 특성</h3>
+  <div class="grid g2" id="dataNotes"></div>
+</section>
+
+<section id="s2">
+  <div class="sec-h"><div class="num">2</div><div><h2>전체 교육 정량 탐색</h2> <span class="en">Interactive Explorer</span></div></div>
+  <p class="lead">필터와 집계 기준을 바꾸면 아래 지표·차트·표가 내장된 원자료로부터 즉시 다시 계산됩니다. <b class="b b-live">필터 연동</b> 이 영역에는 AI 해석이 포함되지 않습니다.</p>
+  <div class="filters">
+    <label>연도<select id="fYear"></select></label>
+    <label>교육유형<select id="fType"></select></label>
+    <label>운영방식<select id="fMode"></select></label>
+    <label>응답자 신분<select id="fStat"></select></label>
+    <label>교육군<select id="fSer"></select></label>
+    <label>평가 지표<select id="fMetric"></select></label>
+    <label>비교 축<select id="fAxis"></select></label>
+    <label>집계 기준<span class="seg" id="fBasis"><button type="button" data-v="row" class="on">설문 행</button><button type="button" data-v="person">추정 인원</button></span></label>
+    <button class="btn" id="fReset" type="button">초기화</button>
+  </div>
+  <div class="scope" id="scopeLine"></div>
+  <div id="diffWarn"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid g2">
+    <div class="chartbox"><h4><span id="barTitle">비교</span><span class="muted">막대=평균(1~5) · 라벨=n</span></h4><div id="barChart"></div></div>
+    <div class="chartbox"><h4><span>응답 분포(100%)</span><span class="muted">1점 → 5점</span></h4><div id="distChart"></div>
+      <div class="lk"><span><i style="background:var(--l1)"></i>1 매우 그렇지 않다</span><span><i style="background:var(--l2)"></i>2</span><span><i style="background:var(--l3)"></i>3 보통</span><span><i style="background:var(--l4)"></i>4</span><span><i style="background:var(--l5)"></i>5 매우 그렇다</span></div></div>
+  </div>
+  <h3>교육별 상세 통계 <b class="b b-live">필터 연동</b> <span class="muted">· 열 제목 클릭=정렬, 행 클릭=분포·주관식 근거 조회</span></h3>
+  <div class="tablewrap"><table id="eduTbl"></table></div>
+  <div class="card ai" style="margin-top:18px" id="explorerAI"></div>
+</section>
+
+<section id="s2q">
+  <div class="sec-h"><div class="num">Q</div><div><h2>주관식 주제 탐색</h2> <span class="en">Qualitative Themes</span></div></div>
+  <p class="lead" id="qualLead"></p>
+  <div class="filters">
+    <label>분석 범위<span class="seg" id="qScope"><button type="button" data-v="TARGET" class="on">대상 교육</button><button type="button" data-v="OTHER">그 외 교육</button></span></label>
+    <label>연도<select id="qYear"></select></label>
+    <label>신분<select id="qStat"></select></label>
+    <label>원문 검색<input type="search" id="qSearch" placeholder="키워드"></label>
+  </div>
+  <div class="scope" id="qScopeLine"></div>
+  <div class="grid g2">
+    <div class="chartbox"><h4><span>주제별 고유 응답자 수</span><span class="muted">막대 클릭 → 원문</span></h4><div id="themeChart"></div>
+      <div class="lk"><span><i style="background:var(--s3)"></i>긍정 경험</span><span><i style="background:var(--s2)"></i>불편·개선 요구</span><span><i style="background:var(--s5)"></i>교육수요·의향</span></div></div>
+    <div class="chartbox"><h4><span id="quoteTitle">원문</span><span class="muted" id="quoteCount"></span></h4><div id="quoteList" style="max-height:620px;overflow:auto"></div></div>
+  </div>
+</section>
+
+<section id="s3">
+  <div class="sec-h"><div class="num">3</div><div><h2 id="tgtH"></h2> <span class="en">Target Deep Dive</span></div></div>
+  <p class="lead" id="tgtLead"></p>
+  <div class="filters">
+    <label id="sensWrap">민감도 분석<span class="seg" id="tSens"><button type="button" data-v="in" class="on">전체 응답 포함</button><button type="button" data-v="ex" id="sensBtn">이상 응답 제외</button></span></label>
+    <label>분포 지표<select id="tMetric"></select></label>
+  </div>
+  <div class="scope" id="tScopeLine"></div>
+  <div class="grid g2">
+    <div class="chartbox"><h4><span>교육 × 지표 평균</span><span class="muted">셀 클릭 → 분포·응답ID</span></h4><div class="hscroll" id="tHeat"></div></div>
+    <div class="chartbox"><h4><span id="tDistTitle">교육별 응답 분포</span><span class="muted">n 표시</span></h4><div id="tDist"></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="chartbox"><h4><span>비교군 · <span id="cmpMetricName"></span></span><span class="muted">추정 인원 기준 · 3점 이하 %</span></h4><div id="cmpChart"></div>
+      <p class="muted" style="margin-top:6px" id="cmpNote"></p></div>
+    <div class="chartbox"><h4><span>문항별 결과(복수 문항·핵심역량)</span><span class="muted">교육마다 목표가 다름 · 합산 금지</span></h4><div id="itemTbl"></div></div>
+  </div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card"><h4>응답자 신분 <b class="b b-fact">확인</b></h4><div id="tStatus"></div></div>
+    <div class="card"><h4>인지경로 <b class="b b-fact">확인</b></h4><div id="tChan"></div></div>
+    <div class="card" id="tAnom"></div>
+  </div>
+  <h3>교육별 특징 <b class="b b-fact">확인</b></h3>
+  <div class="grid g4" id="tCards"></div>
+</section>
+
+<section id="s4">
+  <div class="sec-h"><div class="num">4</div><div><h2>정량·정성 통합 인사이트</h2> <span class="en">Integrated Insights</span></div></div>
+  <p class="lead">관찰 → 정량 근거 → 정성 근거 → 담당자 관점 해석 → 기획 시사점. 앞 세 칸은 <b class="b b-fact">확인</b>, 뒤 두 칸은 <b class="b b-ai">AI 해석</b>입니다. 해석은 표기된 분석 범위에 고정되어 있으며 필터에 따라 바뀌지 않습니다.</p>
+  <div id="insights"></div>
+</section>
+
+<section id="s5">
+  <div class="sec-h"><div class="num">5</div><div><h2>이슈 구조화 · 학습자 유형 · 공감맵</h2> <span class="en">Design Thinking</span></div></div>
+  <p class="lead" id="dtLead"></p>
+  <h3>① 이슈 구조화</h3>
+  <div class="issue-grid" id="issueGrid"></div>
+  <h3>② 학습자 유형</h3>
+  <div class="warnbox" id="personaNote"></div>
+  <div class="grid g3" id="personas"></div>
+  <h3>③ 공감맵 (Empathy Map)</h3>
+  <div class="emp-c" id="empC"></div>
+  <div class="emp" id="emp"></div>
+  <div class="pgn" id="pgn"></div>
+</section>
+
+<section id="s6">
+  <div class="sec-h"><div class="num">6</div><div><h2>Pain Point 분석 · 핵심 문제 재정의</h2> <span class="en">Pain Points & Problem Statement</span></div></div>
+  <p class="lead">근거 강도 막대는 근거의 양과 정량·정성 일치 여부를 나타내는 정성적 표시이며 점수가 아닙니다.</p>
+  <div class="grid g3" id="ppGrid"></div>
+  <div class="card ai" style="margin-top:14px" id="ppRel"></div>
+  <h3>핵심 문제 재정의</h3>
+  <div id="probs"></div>
+</section>
+
+<section id="s7">
+  <div class="sec-h"><div class="num">7</div><div><h2>How Might We</h2> <span class="en">Ideation Questions</span></div></div>
+  <p class="lead">해결책을 미리 정하지 않은 열린 질문입니다. 각 질문에 연결된 근거를 조회할 수 있습니다.</p>
+  <div id="hmwList"></div>
+</section>
+
+<section id="s8">
+  <div class="sec-h"><div class="num">8</div><div><h2>차기 교육 개선 권고</h2> <span class="en">Recommendations</span></div></div>
+  <p class="lead">우선순위는 중요도와 근거 충분성을 고려한 단계 구분이며 수치 점수가 아닙니다. 기대 효과는 검증된 효과가 아닌 <b>예상</b>입니다.</p>
+  <div class="noprint" style="margin-bottom:10px"><button class="btn" id="recOpen" type="button">모두 펼치기</button></div>
+  <div id="recList"></div>
+</section>
+
+<section id="s9">
+  <div class="sec-h"><div class="num">9</div><div><h2>분석 한계 · 데이터 버전 · 검증</h2> <span class="en">Limitations & Verification</span></div></div>
+  <div class="grid g2">
+    <div class="card"><h4>분석 한계</h4><ol class="small" style="padding-left:18px" id="limits"></ol></div>
+    <div class="card"><h4>데이터 버전</h4><table class="static verify" id="verMeta"></table></div>
+  </div>
+  <h3>수치 검증 <b class="b b-fact">확인</b></h3>
+  <div class="card"><p class="small" style="margin-bottom:6px">페이지를 열 때마다 내장된 원자료로 다시 계산한 값과 패키지 검증 집계표(<code>quantitative_summary.csv</code> 전체교육 행)를 비교합니다.</p><table class="static verify" id="verTbl"></table></div>
+</section>
+</main>
+<footer id="foot"></footer>
+</div>
+<aside id="drawer" aria-hidden="true">
+  <div class="dh"><div><div class="muted" id="dSub">근거 조회</div><h4 id="dTitle" style="font-size:15px"></h4></div><button class="btn" id="dClose" type="button">닫기</button></div>
+  <div class="db" id="dBody"></div>
+</aside>
+<script>
+const DATA=/*__DATA__*/;
+const CONTENT=/*__CONTENT__*/;
+</script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const f2=v=>v==null||isNaN(v)?'–':v.toFixed(2), f3=v=>v==null||isNaN(v)?'–':v.toFixed(3), pct=v=>v==null||isNaN(v)?'–':(v*100).toFixed(1)+'%';
+const C=CONTENT, M=DATA.metrics, ML=DATA.metricKo, MS=DATA.metricShort, E=DATA.edus, TL=DATA.codeLabel, TP=DATA.codePol;
+const DIFF=M.indexOf('difficulty_appropriateness');
+const R=DATA.resp.map(r=>({rid:r[0],e:r[1],ed:E[r[1]],st:r[2],p:r[3],ch:r[4],v:r.slice(5)}));
+const Q=DATA.qual; const QBY={}; Q.forEach(q=>QBY[q.id]=q);
+const RBY={}; R.forEach(r=>RBY[r.rid]=r);
+const TE=E.map((e,i)=>({...e,i})).filter(e=>e.isT&&e.resp>0); const TIDX=new Set(TE.map(e=>e.i));
+const tip=$('#tip');
+function showTip(ev,html){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=Math.min(ev.clientX+14,innerWidth-310)+'px';tip.style.top=(ev.clientY+14)+'px';}
+function hideTip(){tip.style.opacity=0;}
+const LCOL=['var(--l1)','var(--l2)','var(--l3)','var(--l4)','var(--l5)'];
+$('#themebtn').onclick=()=>{const r=document.documentElement;const cur=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');r.dataset.theme=cur==='dark'?'light':'dark';renderAll();};
+
+function agg(rows,mi,basis){
+  const by={};let n=0;
+  rows.forEach(r=>{const v=r.v[mi];if(v==null)return;n++;const k=basis==='person'?r.p:r.rid;(by[k]=by[k]||[]).push(v);});
+  const keys=Object.keys(by);if(!keys.length)return {n:0,units:0,mean:null,dist:[0,0,0,0,0],distN:[0,0,0,0,0],top:null,le3:null};
+  let s=0;const d=[0,0,0,0,0];
+  keys.forEach(k=>{const a=by[k];s+=a.reduce((x,y)=>x+y,0)/a.length;a.forEach(v=>d[v-1]+=1/a.length);});
+  const N=keys.length;return {n,units:N,mean:s/N,dist:d.map(x=>x/N),distN:d,top:d[4]/N,le3:(d[0]+d[1]+d[2])/N};
+}
+function eduEq(rows,mi){const by={};rows.forEach(r=>{const v=r.v[mi];if(v==null)return;(by[r.e]=by[r.e]||[]).push(v);});const ks=Object.keys(by);if(!ks.length)return {m:null,k:0};return {m:ks.reduce((s,k)=>s+by[k].reduce((a,b)=>a+b,0)/by[k].length,0)/ks.length,k:ks.length};}
+function evBtns(ev){if(!ev)return '';let h='';
+  if(ev.q&&ev.q.length)h+=`<button class="ev" data-q="${esc(ev.q.join(','))}">원문 ${ev.q.length}</button>`;
+  if(ev.r&&ev.r.length)h+=`<button class="ev" data-r="${esc(ev.r.join(','))}">응답 ${ev.r.length}</button>`;
+  if(ev.edu&&ev.edu.length)ev.edu.forEach(id=>{const i=E.findIndex(e=>e.id===id);if(i>=0)h+=`<button class="ev" data-edu="${i}">${esc(id.split('-').slice(-2).join('-'))}</button>`;});
+  if(ev.theme)h+=`<button class="ev" data-theme="${esc(ev.theme)}" data-scope="${esc(ev.scope||'TARGET')}">주제 원문</button>`;
+  return h;}
+
+// ---------- header & static text
+const MT=DATA.meta;
+$('#hSub').textContent=C.header_sub||'학술정보교육 설문 정량·정성 통합분석';
+$('#hTitle').innerHTML=md(C.title)+(C.subtitle?`<br><span style="font-weight:400;font-size:18px">${md(C.subtitle)}</span>`:'');
+$('#hPurpose').innerHTML=md(C.purpose||'');
+$('#pills').innerHTML=[`데이터 ${MT.dataset}`,`정량 ${MT.quant}`,`정성 ${MT.qual}`,`교육 ${MT.counts.educations} · 설문 교육 ${MT.counts.survey_educations}`,`응답 ${MT.counts.survey_responses.toLocaleString()}건`].map(t=>`<span class="pill">${esc(t)}</span>`).join('');
+document.title=C.doc_title||'학술정보교육 통합분석 보고서';
+$('#sumLead').innerHTML=`“${md(C.summary.question)}” <b class="b b-ai">AI 해석</b> <b class="b b-fix">범위: ${esc(C.summary.scope)}</b>`;
+$('#sumRows').innerHTML=C.summary.rows.map(r=>`<div class="row"><div class="k">${esc(r.k)}</div><div class="v"><ul>${r.items.map(it=>`<li>${md(it.text)} ${evBtns(it.ev)}</li>`).join('')}</ul></div></div>`).join('');
+$('#dataLead').innerHTML=md(C.data_lead||'');
+$('#dataNotes').innerHTML=(C.data_notes||[]).map(n=>`<div class="card"><h4><b class="b ${n.badge==='warn'?'b-warn':n.badge==='fact'?'b-fact':'b-fix'}">${esc(n.badge_label||({warn:'해석 제한',fact:'확인',fix:'참고'})[n.badge]||'참고')}</b> ${esc(n.title)}</h4><p class="small">${md(n.text)} ${evBtns(n.ev)}</p></div>`).join('');
+const X=C.explorer_interpretation||{items:[]};
+$('#explorerAI').innerHTML=`<h4><b class="b b-ai">AI 해석</b> <b class="b b-fix">범위 고정: ${esc(X.scope||'')}</b></h4><ul class="small" style="padding-left:18px">${X.items.map(t=>`<li>${md(t)}</li>`).join('')}</ul>`;
+$('#qualLead').innerHTML=md(C.qual_lead||'분석 포함 원문을 전부 읽고 코드북으로 새로 코딩했습니다. 수치는 **고유 응답자 수**이며 한 응답이 여러 주제에 포함되므로 합계가 100%를 넘습니다. 패키지의 PROPOSED 코딩은 사용하지 않았습니다.')+' <b class="b b-live">필터 연동</b>';
+$('#qScope button[data-v=TARGET]').textContent=DATA.target.label;
+
+// ---------- data section (auto)
+const yrs=[...new Set(E.map(e=>e.y))].sort();
+$('#dataKpis').innerHTML=[
+ ['교육',MT.counts.educations+'개','설문 있는 교육 '+MT.counts.survey_educations+'개'],
+ ['설문 응답',MT.counts.survey_responses.toLocaleString()+'건',yrs.map(y=>y+' '+R.filter(r=>r.ed.y===y).length).join(' · ')],
+ ['추정 인원',new Set(R.map(r=>r.p)).size.toLocaleString()+'명','분할 운영 단위 동일인 통합'],
+ ['문항 응답',MT.counts.question_answers.toLocaleString()+'행',''],
+ ['주관식',MT.counts.qualitative_source_rows+'행','분석 포함 '+Q.length+'행'],
+ ['대상 교육',TE.length+'개','응답 '+R.filter(r=>TIDX.has(r.e)).length+'건']
+].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${k[2]}</div></div>`).join('');
+const WD=['일','월','화','수','목','금','토'];
+$('#tgtMetaTbl').innerHTML='<thead><tr><th>교육ID</th><th>교육명</th><th>교육일</th><th>운영</th><th>교육대상</th><th class="n">신청/참여(기준표)</th><th class="n">설문 응답</th><th class="n">추정 인원</th><th>응답자 구성</th><th class="n">주관식 작성자</th></tr></thead><tbody>'+TE.map(e=>{const rs=R.filter(r=>r.e===e.i);const st={};rs.forEach(r=>st[r.st]=(st[r.st]||0)+1);const qn=new Set(Q.filter(q=>q.e===e.i).map(q=>q.rid)).size;const wd=e.date?'('+WD[new Date(e.date).getDay()]+')':'';return `<tr><td>${e.id}</td><td>${esc(e.name)}</td><td>${e.date}${wd}</td><td>${esc(e.mode)}</td><td>${esc(e.target)}</td><td class="n">${e.app??'–'} / ${e.part??'–'}</td><td class="n">${rs.length}</td><td class="n">${new Set(rs.map(r=>r.p)).size}</td><td>${Object.entries(st).map(([k,v])=>esc(k)+' '+v).join(' · ')}</td><td class="n">${qn}명</td></tr>`}).join('')+'</tbody>';
+
+// ---------- explorer
+const opts=arr=>['<option value="">전체</option>'].concat([...new Set(arr)].filter(v=>v!=null&&v!=='').sort().map(v=>`<option>${esc(v)}</option>`)).join('');
+$('#fYear').innerHTML=opts(E.map(e=>e.y));$('#fType').innerHTML=opts(E.filter(e=>e.resp).map(e=>e.type));$('#fMode').innerHTML=opts(E.filter(e=>e.resp).map(e=>e.mode));$('#fStat').innerHTML=opts(R.map(r=>r.st));
+$('#fSer').innerHTML='<option value="">전체</option>'+[...new Map(E.map(e=>[e.ser,e.serName])).entries()].sort((a,b)=>a[1].localeCompare(b[1],'ko')).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('');
+$('#fMetric').innerHTML=M.map((m,i)=>`<option value="${i}">${ML[m]}${i===DIFF?'(해석 제한)':''}</option>`).join('');
+const AXES={y:'연도',type:'교육유형',mode:'운영방식',st:'응답자 신분',ser:'교육군',cmp:'비교군'};
+$('#fAxis').innerHTML=Object.entries(AXES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+let F={y:'',type:'',mode:'',st:'',ser:'',mi:0,axis:'y',basis:'row'};
+function keyOf(r,ax){if(ax==='st')return r.st;if(ax==='cmp')return r.ed.cmp;if(ax==='ser')return r.ed.serName;return r.ed[ax];}
+function filtered(){return R.filter(r=>(!F.y||r.ed.y===F.y)&&(!F.type||r.ed.type===F.type)&&(!F.mode||r.ed.mode===F.mode)&&(!F.st||r.st===F.st)&&(!F.ser||r.ed.ser===F.ser));}
+['fYear:y','fType:type','fMode:mode','fStat:st','fSer:ser'].forEach(s=>{const [id,k]=s.split(':');$('#'+id).onchange=ev=>{F[k]=ev.target.value;renderExplorer();};});
+$('#fMetric').onchange=ev=>{F.mi=+ev.target.value;renderExplorer();};$('#fAxis').onchange=ev=>{F.axis=ev.target.value;renderExplorer();};
+$$('#fBasis button').forEach(b=>b.onclick=()=>{$$('#fBasis button').forEach(x=>x.classList.toggle('on',x===b));F.basis=b.dataset.v;renderExplorer();});
+$('#fReset').onclick=()=>{F={y:'',type:'',mode:'',st:'',ser:'',mi:0,axis:'y',basis:'row'};['fYear','fType','fMode','fStat','fSer'].forEach(id=>$('#'+id).value='');$('#fMetric').value=0;$('#fAxis').value='y';$$('#fBasis button').forEach(x=>x.classList.toggle('on',x.dataset.v==='row'));renderExplorer();};
+
+function W(el){return Math.max(320,Math.round(el.getBoundingClientRect().width||560));}
+function trunc(s,n){s=String(s);return s.length>n?s.slice(0,n-1)+'…':s;}
+function hbar(el,items,{min=1,max=5,fmt=f2,color='var(--s1)',onclick=null}={}){
+  const w=W(el),lab=Math.min(190,Math.max(130,Math.round(w*.34))),rh=28,top=18,h=top+items.length*rh+22,x0=lab+8,x1=w-(items.some(i=>i.right)?118:58);
+  const sx=v=>x0+(Math.max(min,Math.min(max,v))-min)/(max-min)*(x1-x0);
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img">`;
+  const step=(max-min)<=1?0.25:(max-min)<=4?0.5:Math.ceil((max-min)/5);
+  for(let t=min;t<=max+1e-9;t+=step){s+=`<line class="grid" x1="${sx(t)}" x2="${sx(t)}" y1="${top-6}" y2="${h-20}"/><text x="${sx(t)}" y="${h-6}" text-anchor="middle">${+t.toFixed(2)}</text>`;}
+  items.forEach((it,i)=>{const y=top+i*rh;const bw=it.v==null?0:sx(it.v)-x0;
+    s+=`<g class="bar" data-i="${i}"><text x="${lab}" y="${y+15}" text-anchor="end">${esc(trunc(it.label,Math.floor(lab/11.5)))}</text><rect class="m" x="${x0}" y="${y+5}" width="${Math.max(0,bw)}" height="14" rx="3" fill="${it.color||color}"/><text class="val" x="${x0+bw+6}" y="${y+16}">${it.v==null?'–':fmt(it.v)}</text>`+
+    (it.right!=null?`<text x="${w-2}" y="${y+16}" text-anchor="end">${esc(it.right)}</text>`:(it.n!=null?`<text x="${w-2}" y="${y+16}" text-anchor="end">n=${it.n}</text>`:''))+`<rect class="hit" x="0" y="${y}" width="${w}" height="${rh}"/></g>`;});
+  el.innerHTML=s+'</svg>';
+  el.querySelectorAll('g.bar').forEach(g=>{const it=items[+g.dataset.i];g.onmousemove=ev=>showTip(ev,it.tip||`<b>${esc(it.label)}</b><br>${fmt(it.v)}`);g.onmouseleave=hideTip;if(onclick){g.style.cursor='pointer';g.onclick=()=>onclick(it);}});
+}
+function stack(el,items){
+  const w=W(el),lab=Math.min(190,Math.max(130,Math.round(w*.34))),rh=26,top=6,h=top+items.length*rh+6,x0=lab+8,x1=w-48;
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img">`;
+  items.forEach((it,i)=>{const y=top+i*rh;let x=x0;s+=`<g class="bar" data-i="${i}"><text x="${lab}" y="${y+15}" text-anchor="end">${esc(trunc(it.label,Math.floor(lab/11.5)))}</text>`;
+    it.dist.forEach((d,k)=>{const bw=d*(x1-x0);if(bw>0){s+=`<rect x="${x}" y="${y+4}" width="${Math.max(0,bw-2)}" height="16" fill="${LCOL[k]}" rx="2"/>`;if(bw>26)s+=`<text x="${x+bw/2-1}" y="${y+16}" text-anchor="middle" style="fill:${k>=3?'#fff':'#1e2a3a'};font-size:10.5px">${Math.round(d*100)}</text>`;}x+=bw;});
+    s+=`<text x="${w-2}" y="${y+16}" text-anchor="end">n=${it.n}</text><rect class="hit" x="0" y="${y}" width="${w}" height="${rh}"/></g>`;});
+  el.innerHTML=s+'</svg>';
+  el.querySelectorAll('g.bar').forEach(g=>{const it=items[+g.dataset.i];g.onmousemove=ev=>showTip(ev,`<b>${esc(it.label)}</b><br>`+it.dist.map((d,k)=>`${k+1}점 ${(d*100).toFixed(1)}%`+(it.cnt?` (${+it.cnt[k].toFixed(2)})`:'')).join('<br>'));g.onmouseleave=hideTip;});
+}
+let sortK='n',sortD=-1;
+function renderExplorer(){
+  const rows=filtered(),mi=F.mi,m=M[mi],a=agg(rows,mi,F.basis),eq=eduEq(rows,mi);
+  const edus=new Set(rows.filter(r=>r.v[mi]!=null).map(r=>r.e)),per=new Set(rows.filter(r=>r.v[mi]!=null).map(r=>r.p));
+  const fdesc=[F.y&&('연도 '+F.y),F.type&&('유형 '+F.type),F.mode&&('운영 '+F.mode),F.st&&('신분 '+F.st),F.ser&&('교육군 '+(E.find(e=>e.ser===F.ser)||{}).serName)].filter(Boolean).join(' · ')||'필터 없음(전체)';
+  $('#scopeLine').innerHTML=`<b>현재 범위</b> ${esc(fdesc)} · 지표 <b>${ML[m]}</b> · 집계 기준 <b>${F.basis==='row'?'설문 행(응답자 가중)':'추정 인원(분할 운영 단위 동일인 통합)'}</b> · 유효 응답 ${a.n}건 / ${F.basis==='row'?'':'추정 '+a.units+'명 / '}${edus.size}개 교육`;
+  $('#diffWarn').innerHTML=mi===DIFF?`<div class="warnbox"><b>해석 제한</b> ${md(C.difficulty_warning||'난이도 문항은 척도 방향·선택지 구성이 검증되지 않았습니다. 평균을 비교하거나 높낮이로 해석하지 말고 분포만 참고하세요.')}</div>`:(m==='goal_attainment'?'<div class="warnbox">핵심역량 향상 도움도는 교육마다 다른 목표에 대한 자기평가입니다. 한 응답자에게 같은 지표 문항이 2개 이상인 교육은 규칙에 따라 통합 평균에서 제외됩니다(3장 문항별 표 참고).</div>':'');
+  $('#kpis').innerHTML=[['평균('+(F.basis==='row'?'응답자 가중':'추정 인원')+')',f3(a.mean),'1~5점'],['교육 동일가중 평균',f3(eq.m),eq.k+'개 교육'],['5점 비율',pct(a.top),'최고점 응답'],['3점 이하 비율',pct(a.le3),'천장효과 하 민감 지표'],['유효 응답',a.n.toLocaleString()+'건',F.basis==='person'?'추정 '+a.units+'명':'추정 인원 '+per.size+'명'],['교육 수',edus.size+'개','']].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${k[2]}</div></div>`).join('');
+  const groups={};rows.forEach(r=>{const k=keyOf(r,F.axis)||'미상';(groups[k]=groups[k]||[]).push(r);});
+  let items=Object.entries(groups).map(([k,rs])=>{const g=agg(rs,mi,F.basis);return {label:k,v:g.mean,n:F.basis==='row'?g.n:g.units,dist:g.dist,cnt:g.distN,g};}).filter(it=>it.n>0);
+  items.sort((x,y)=>F.axis==='y'||F.axis==='cmp'?x.label.localeCompare(y.label,'ko'):(y.n-x.n));
+  items.forEach(it=>it.tip=`<b>${esc(it.label)}</b><br>평균 ${f3(it.v)} · n=${it.n}<br>5점 ${pct(it.g.top)} · 3점 이하 ${pct(it.g.le3)}`);
+  $('#barTitle').textContent=ML[m]+' · '+AXES[F.axis]+'별';
+  const lo=Math.min(...items.map(i=>i.v??5));const mn=mi===DIFF?1:Math.max(1,Math.min(4,Math.floor(lo*2)/2-0.5));
+  hbar($('#barChart'),items,{min:mn,max:5});stack($('#distChart'),items);
+  const eg={};rows.forEach(r=>{(eg[r.e]=eg[r.e]||[]).push(r);});
+  let er=Object.entries(eg).map(([i,rs])=>{const e=E[i];const g=agg(rs,mi,F.basis);return {i:+i,id:e.id,name:e.name,date:e.date,type:e.type,mode:e.mode,target:e.target,n:F.basis==='row'?g.n:g.units,mean:g.mean,top:g.top,low:Math.round((g.distN[0]+g.distN[1]+g.distN[2])*100)/100,qn:Q.filter(q=>q.e===+i).length};}).filter(x=>x.n>0);
+  er.sort((x,y)=>{const a=x[sortK],b=y[sortK];if(typeof a==='string')return sortD*a.localeCompare(b,'ko');return sortD*((a??-1)-(b??-1));});
+  const H=[['id','교육ID'],['name','교육명'],['date','교육일'],['type','유형'],['mode','운영'],['target','대상'],['n','n'],['mean','평균'],['top','5점%'],['low','3점 이하(건)'],['qn','주관식']];
+  $('#eduTbl').innerHTML='<thead><tr>'+H.map(([k,l])=>`<th data-k="${k}">${l}${sortK===k?(sortD>0?' ▲':' ▼'):''}</th>`).join('')+'</tr></thead><tbody>'+er.map(x=>`<tr class="click${E[x.i].isT?' tgt':''}" data-i="${x.i}"><td>${x.id}</td><td>${esc(x.name)}</td><td>${x.date}</td><td>${esc(x.type)}</td><td>${esc(x.mode)}</td><td>${esc(x.target)}</td><td class="n">${x.n}</td><td class="n">${f2(x.mean)}</td><td class="n">${pct(x.top)}</td><td class="n">${+x.low.toFixed(2)}</td><td class="n">${x.qn}</td></tr>`).join('')+'</tbody>';
+  $$('#eduTbl th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortK===k)sortD*=-1;else{sortK=k;sortD=['id','name','date','type','mode','target'].includes(k)?1:-1;}renderExplorer();});
+  $$('#eduTbl tr.click').forEach(tr=>tr.onclick=()=>openEdu(+tr.dataset.i,mi));
+}
+function openEdu(i,mi){
+  const e=E[i],rs=R.filter(r=>r.e===i);
+  let h=`<p class="small">${esc(e.name)} · ${e.date} · ${esc(e.type)} · ${esc(e.mode)} · 대상 ${esc(e.target)}<br>신청 ${e.app??'–'} / 참여(기준표) ${e.part??'–'} / 설문 ${rs.length}건 · 추정 ${new Set(rs.map(r=>r.p)).size}명${e.rr!=null?' · 응답률 '+(e.rr*100).toFixed(1)+'%':' · 응답률 미산출'}${e.split?' · <b>분할 운영 단위 '+esc(e.unit)+'</b>':''}</p><div class="tablewrap" style="max-height:none;margin:10px 0"><table class="static"><thead><tr><th>지표</th><th class="n">n</th><th class="n">평균</th><th>분포(1→5)</th></tr></thead><tbody>`;
+  M.forEach((m,k)=>{const g=agg(rs,k,'row');if(!g.n)return;h+=`<tr${k===mi?' style="background:var(--livebg)"':''}><td>${ML[m]}</td><td class="n">${g.n}</td><td class="n">${f2(g.mean)}</td><td>${g.distN.map(Math.round).join(' / ')}</td></tr>`;});
+  h+='</tbody></table></div>';const qs=Q.filter(q=>q.e===i);h+=`<h4>주관식 원문 ${qs.length}행</h4>`+(qs.length?qs.map(quoteHTML).join(''):'<p class="muted">분석 포함 주관식 없음</p>');
+  openDrawer(e.id,'교육 상세 · 필터와 무관하게 해당 교육 전체 응답',h);
+}
+
+// ---------- qualitative
+const TC=c=>TP[c]==='P'?'var(--s3)':TP[c]==='N'?'var(--s2)':'var(--s5)';
+function quoteHTML(q){const e=E[q.e]||{};return `<div class="quote"><div class="m"><span>${esc(q.id)}</span><span>${esc(e.id||'')}</span><span>${esc(q.st)}</span><span>${esc(q.q)}</span></div><div class="t">${esc(q.t)}</div><div style="margin-top:5px">${q.c.map(c=>`<span class="ctag">${esc(TL[c]||c)}</span>`).join(' ')||'<span class="ctag">일반 인사·내용 없음(주제 미부여)</span>'}</div></div>`;}
+$('#qYear').innerHTML=opts(Q.map(q=>(E[q.e]||{}).y));$('#qStat').innerHTML=opts(Q.map(q=>q.st));
+let QS={scope:'TARGET',y:'',st:'',s:'',theme:null};
+$$('#qScope button').forEach(b=>b.onclick=()=>{$$('#qScope button').forEach(x=>x.classList.toggle('on',x===b));QS.scope=b.dataset.v;QS.theme=null;renderQual();});
+$('#qYear').onchange=e=>{QS.y=e.target.value;renderQual();};$('#qStat').onchange=e=>{QS.st=e.target.value;renderQual();};$('#qSearch').oninput=e=>{QS.s=e.target.value.trim();renderQual();};
+function renderQual(){
+  const base=Q.filter(q=>q.g===QS.scope&&(!QS.y||(E[q.e]&&E[q.e].y===QS.y))&&(!QS.st||q.st===QS.st));
+  const resp=new Set(base.map(q=>q.rid)),eds=new Set(base.map(q=>q.e));
+  $('#qScopeLine').innerHTML=`<b>현재 범위</b> ${QS.scope==='TARGET'?esc(DATA.target.label):'그 외 교육'}${QS.y?' · '+QS.y:''}${QS.st?' · '+esc(QS.st):''} · 원문 ${base.length}행 · 고유 응답자 ${resp.size}명 · ${eds.size}개 교육`;
+  const cnt={};base.forEach(q=>q.c.forEach(c=>{(cnt[c]=cnt[c]||{r:new Set(),m:0,e:new Set()});cnt[c].r.add(q.rid);cnt[c].m++;cnt[c].e.add(q.e);}));
+  const items=Object.entries(cnt).map(([c,o])=>({code:c,label:TL[c]||c,v:o.r.size,color:TC(c),tip:`<b>${esc(TL[c]||c)}</b><br>고유 응답자 ${o.r.size}명 (${(o.r.size/Math.max(1,resp.size)*100).toFixed(1)}%)<br>언급 ${o.m}건 · 관련 교육 ${o.e.size}개`})).sort((a,b)=>b.v-a.v||a.label.localeCompare(b.label,'ko'));
+  const mx=Math.max(1,...items.map(i=>i.v));
+  if(items.length)hbar($('#themeChart'),items,{min:0,max:Math.ceil(mx/5)*5||5,fmt:v=>String(v),onclick:it=>{QS.theme=it.code;renderQuotes(base);}});else $('#themeChart').innerHTML='<p class="muted">해당 범위에 코딩된 원문이 없습니다.</p>';
+  renderQuotes(base);
+}
+function renderQuotes(base){
+  let qs=base;if(QS.theme)qs=qs.filter(q=>q.c.includes(QS.theme));if(QS.s)qs=qs.filter(q=>q.t.includes(QS.s));
+  $('#quoteTitle').innerHTML=QS.theme?`원문 · ${esc(TL[QS.theme])} <button class="ev" id="qClear">주제 해제</button>`:(QS.s?'원문 검색 결과':'원문 (주제를 선택하세요)');
+  $('#quoteCount').textContent=qs.length+'행';$('#quoteList').innerHTML=qs.slice(0,200).map(quoteHTML).join('')||'<p class="muted">해당 원문 없음</p>';
+  const c=$('#qClear');if(c)c.onclick=()=>{QS.theme=null;renderQuotes(base);};
+}
+
+// ---------- target deep dive
+const TM=M.map((m,i)=>i).filter(i=>R.some(r=>TIDX.has(r.e)&&r.v[i]!=null)||M[i]==='goal_attainment');
+const SENS=(C.sensitivity&&C.sensitivity.exclude)||[];
+$('#tgtH').textContent=(DATA.target.label)+' 심층 비교';
+$('#tgtLead').innerHTML=md(C.target_lead||'')+' <b class="b b-live">필터 연동</b>';
+if(!SENS.length)$('#sensWrap').style.display='none';else $('#sensBtn').textContent=C.sensitivity.label||('이상 응답 '+SENS.length+'건 제외');
+$('#tMetric').innerHTML=TM.map(i=>`<option value="${i}">${ML[M[i]]}</option>`).join('');
+let TS={ex:false,mi:TM.includes(+C.target_default_metric)?+C.target_default_metric:TM[0]};$('#tMetric').value=TS.mi;
+$$('#tSens button').forEach(b=>b.onclick=()=>{$$('#tSens button').forEach(x=>x.classList.toggle('on',x===b));TS.ex=b.dataset.v==='ex';renderTarget();});
+$('#tMetric').onchange=e=>{TS.mi=+e.target.value;renderTarget();};
+const keep=r=>!TS.ex||!SENS.includes(r.rid);
+function heatColor(v){if(v==null)return 'var(--soft)';const t=Math.max(0,Math.min(1,(v-4)/1));const L=['#e8f1fc','#cde2fb','#9ec5f4','#6da7ec','#3987e5','#256abf'];return L[Math.round(t*5)];}
+function shortId(id){return id.split('-').slice(-2).join('-');}
+function renderTarget(){
+  const rows=R.filter(r=>TIDX.has(r.e)&&keep(r));
+  $('#tScopeLine').innerHTML=`<b>현재 범위</b> ${esc(DATA.target.label)} ${TE.length}개 교육 · 응답 ${rows.length}건 · 추정 ${new Set(rows.map(r=>r.p)).size}명${TS.ex?' · '+esc(C.sensitivity.reason||'이상 응답 제외(삭제가 아닌 민감도 확인용)'):''}`;
+  const el=$('#tHeat');const wbox=W(el),lab=110,cw=Math.max(62,(wbox-lab-6)/TE.length),w=lab+cw*TE.length+6,rh=34,top=26,h=top+TM.length*rh+4;
+  let s=`<svg viewBox="0 0 ${w} ${h}" style="width:${w}px;max-width:none">`;
+  TE.forEach((e,j)=>s+=`<text x="${lab+cw*j+cw/2}" y="16" text-anchor="middle" style="font-weight:700">${esc(shortId(e.id))}</text>`);
+  TM.forEach((mi,k)=>{const y=top+k*rh;const dif=mi===DIFF;s+=`<text x="${lab-8}" y="${y+21}" text-anchor="end">${MS[M[mi]]}${dif?' ⚠':''}</text>`;
+    TE.forEach((e,j)=>{const g=agg(rows.filter(r=>r.e===e.i),mi,'row');const x=lab+cw*j;const col=dif?'var(--soft)':heatColor(g.mean);const dark=!dif&&g.mean!=null&&g.mean>=4.7;
+      const lab1=dif?'분포만':(g.n?f2(g.mean):'복수문항');
+      s+=`<g class="cell" data-mi="${mi}" data-e="${e.i}"><rect x="${x+2}" y="${y+2}" width="${cw-4}" height="${rh-4}" rx="4" fill="${g.n?col:'var(--soft)'}" stroke="var(--line)"/><text x="${x+cw/2}" y="${y+17}" text-anchor="middle" class="val" style="fill:${dark?'#fff':(dif||!g.n?'var(--ink)':'#1e2a3a')}">${lab1}</text><text x="${x+cw/2}" y="${y+29}" text-anchor="middle" style="font-size:10px;fill:${dark?'#e8f1fc':(dif||!g.n?'var(--ink3)':'#3a4553')}">n=${g.n}${g.n&&!dif?' · ≤3: '+Math.round(g.distN[0]+g.distN[1]+g.distN[2]):''}</text><rect class="hit" x="${x}" y="${y}" width="${cw}" height="${rh}"/></g>`;});});
+  el.innerHTML=s+'</svg>';
+  $$('#tHeat g.cell').forEach(g=>{const mi=+g.dataset.mi,ei=+g.dataset.e;g.style.cursor='pointer';g.onmousemove=ev=>{const a=agg(rows.filter(r=>r.e===ei),mi,'row');showTip(ev,`<b>${E[ei].id} · ${ML[M[mi]]}</b><br>`+(a.n?`평균 ${f3(a.mean)} · n=${a.n}<br>`+a.distN.map((d,k)=>`${k+1}점 ${Math.round(d)}건`).join(' · '):'복수 문항 지표 — 오른쪽 문항별 표 참고'));};g.onmouseleave=hideTip;g.onclick=()=>openCell(ei,mi,rows);});
+  $('#tDistTitle').textContent='교육별 응답 분포 · '+ML[M[TS.mi]];
+  const items=TE.map(e=>{const g=agg(rows.filter(r=>r.e===e.i),TS.mi,'row');return {label:shortId(e.id)+' '+e.name,dist:g.dist,n:g.n,cnt:g.distN};}).filter(x=>x.n);
+  const all=agg(rows,TS.mi,'row');items.push({label:'대상 통합',dist:all.dist,n:all.n,cnt:all.distN});stack($('#tDist'),items);
+  const cm=TS.mi===DIFF?0:TS.mi;$('#cmpMetricName').textContent=ML[M[cm]]+(TS.mi===DIFF?'(난이도 대신)':'');
+  const grp={};R.filter(keep).forEach(r=>{(grp[r.ed.cmp]=grp[r.ed.cmp]||[]).push(r);});
+  const ci=Object.keys(grp).sort().map(k=>{const g=agg(grp[k],cm,'person');return {label:k,v:g.mean,n:g.units,color:k.startsWith('①')?'var(--s2)':'var(--s1)',right:'≤3 '+pct(g.le3)+' · n='+g.units,tip:`<b>${esc(k)}</b><br>평균 ${f3(g.mean)} · 추정 ${g.units}명<br>3점 이하 ${pct(g.le3)}`};}).filter(x=>x.n);
+  const lo=Math.min(...ci.map(c=>c.v??5));hbar($('#cmpChart'),ci,{min:Math.max(1,Math.min(4,Math.floor(lo*2)/2)),max:5});
+}
+function openCell(ei,mi,rows){
+  const rs=rows.filter(r=>r.e===ei).sort((a,b)=>(a.v[mi]??9)-(b.v[mi]??9));
+  let h=`<p class="small">${esc(E[ei].name)} · 응답 ${rs.length}건. 점수가 낮은 순으로 응답ID와 다른 지표 점수, 주관식 수를 보여줍니다.</p><div class="tablewrap" style="max-height:none"><table class="static"><thead><tr><th>응답ID</th><th>신분</th>${TM.map(k=>`<th class="n">${MS[M[k]]}</th>`).join('')}<th class="n">주관식</th></tr></thead><tbody>`+
+  rs.map(r=>`<tr class="click" data-r="${r.rid}"><td>${esc(r.rid.slice(-8))}</td><td>${esc(r.st)}</td>${TM.map(k=>`<td class="n"${k===mi?' style="background:var(--livebg);font-weight:700"':''}>${r.v[k]??'–'}</td>`).join('')}<td class="n">${Q.filter(q=>q.rid===r.rid).length}</td></tr>`).join('')+'</tbody></table></div><p class="muted" style="margin-top:6px">행을 클릭하면 해당 응답의 문항별 점수와 주관식을 볼 수 있습니다.</p>';
+  openDrawer(E[ei].id+' · '+ML[M[mi]],'셀 상세',h);
+  $$('#dBody tr.click').forEach(tr=>tr.onclick=()=>openResp([tr.dataset.r]));
+}
+function openResp(ids){
+  let h='';ids.forEach(id=>{const r=RBY[id];if(!r){h+=`<p class="muted">${esc(id)}: 응답 없음</p>`;return;}const ex=DATA.itemScores[id]||{};
+    h+=`<div class="card" style="margin-bottom:10px"><h4>${esc(id)} · ${esc(r.st)} · ${esc(r.ed.id)}</h4><p class="small">${M.map((m,k)=>`${MS[m]} <b>${r.v[k]??'–'}</b>`).join(' · ')}${Object.entries(ex).map(([k,v])=>` · 문항 ${esc(k)} <b>${v}</b>`).join('')}</p>`+(Q.filter(q=>q.rid===id).map(quoteHTML).join('')||'<p class="muted">주관식 없음(또는 분석 제외)</p>')+'</div>';});
+  openDrawer(ids.length+'개 응답','응답 단위 근거',h);
+}
+function renderTargetStatic(){
+  const it=DATA.targetItems;
+  $('#itemTbl').innerHTML=it.length?'<table class="static"><thead><tr><th>교육</th><th>문항 요지</th><th class="n">n</th><th class="n">평균</th><th class="n">1점</th></tr></thead><tbody>'+it.map(g=>`<tr><td>${esc(shortId(g.edu))}</td><td class="small">${esc(trunc(g.text,60))}<br><span class="muted">${esc(ML[g.metric]||g.metric)} · 문항ID ${esc(g.qid)}</span></td><td class="n">${g.n}</td><td class="n"><b>${g.mean.toFixed(2)}</b></td><td class="n">${Math.round(g.dist[0])}</td></tr>`).join('')+'</tbody></table>':'<p class="muted">해당 문항 없음</p>';
+  const rows=R.filter(r=>TIDX.has(r.e));const sts=[...new Set(rows.map(r=>r.st))];
+  $('#tStatus').innerHTML='<table class="static small"><thead><tr><th>교육</th><th>대상</th>'+sts.map(s=>`<th class="n">${esc(s)}</th>`).join('')+'</tr></thead><tbody>'+TE.map(e=>{const rs=rows.filter(r=>r.e===e.i);return `<tr><td>${esc(shortId(e.id))}</td><td>${esc(e.target)}</td>${sts.map(s=>`<td class="n">${rs.filter(r=>r.st===s).length}</td>`).join('')}</tr>`}).join('')+'</tbody></table><p class="small" style="margin-top:6px">전반적 만족도: '+sts.map(s=>{const g=agg(rows.filter(r=>r.st===s),0,'row');return esc(s)+' '+f2(g.mean)+' (n='+g.n+')';}).join(' · ')+'</p>';
+  const ch={};rows.forEach(r=>ch[r.ch]=(ch[r.ch]||0)+1);const cv=Object.entries(ch).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({label:k,v,n:null}));
+  hbar($('#tChan'),cv,{min:0,max:Math.max(5,Math.ceil(Math.max(...cv.map(c=>c.v))/5)*5),fmt:v=>v+'건'});
+  const A=C.anomalies||[];
+  $('#tAnom').innerHTML=`<h4><b class="b b-warn">응답 패턴 이상</b></h4>`+(A.length?A.map(a=>`<p class="small"><b>${esc(a.title)}</b>: ${md(a.text)} ${evBtns(a.ev)}</p>`).join(''):'<p class="small muted">특이 응답 패턴이 확인되지 않았습니다.</p>');
+  $('#cmpNote').innerHTML=md(C.compare_note||DATA.cmpNote);
+  $('#tCards').innerHTML=TE.map(e=>{const notes=(C.target_cards||{})[e.id]||[];return `<div class="card"><h4>${esc(shortId(e.id))} <span class="muted">${e.date}</span></h4><p class="small" style="font-weight:700">${esc(e.name)}</p><ul class="small" style="padding-left:16px">${notes.map(t=>`<li>${md(t)}</li>`).join('')||'<li class="muted">특이사항 없음</li>'}</ul><button class="ev" data-edu="${e.i}">교육 상세</button></div>`;}).join('');
+}
+
+// ---------- design thinking & co (static content)
+$('#insights').innerHTML=(C.insights||[]).map(x=>`<div class="insight"><div class="ih"><b>${esc(x.title)}</b><span class="b b-fix">${esc(x.tag)}</span><span class="muted">범위: ${esc(x.scope)}</span></div><div class="flow"><div><span class="fl">관찰된 결과</span>${md(x.obs)}</div><div><span class="fl">정량 근거 · 확인</span>${md(x.quant)}</div><div><span class="fl">정성 근거 · 확인</span>${md(x.qual)}<div>${evBtns(x.ev)}</div></div><div class="ai"><span class="fl">담당자 관점 해석 · AI</span>${md(x.interp)}</div><div class="ai"><span class="fl">기획 시사점 · AI</span>${md(x.implication)}</div></div></div>`).join('');
+const KB={fact:'<b class="b b-fact">확인</b>',ai:'<b class="b b-ai">AI 해석</b>',mixed:'<b class="b b-fact">확인</b> <b class="b b-ai">AI 해석</b>'};
+$('#dtLead').innerHTML=md(C.dt_scope||'')+' <b class="b b-fix">범위 고정</b>';
+const IS=C.issue||{};const ISN={user:'사용자',need:'요구사항',goal:'목표',problem:'문제점',action:'행동'};const ISC={user:'user',need:'need',goal:'goal',problem:'prob',action:'action'};
+$('#issueGrid').innerHTML=Object.keys(ISN).filter(k=>IS[k]).map(k=>`<div class="issue-card ${ISC[k]}"><span class="itag">${ISN[k]}</span><p class="small">${md(IS[k].text)} ${KB[IS[k].kind]||''} ${evBtns(IS[k].ev)}</p></div>`).join('');
+$('#personaNote').innerHTML='<b>유형 도출의 한계</b> — '+md(C.persona_note||'');
+$('#personas').innerHTML=(C.personas||[]).map((p,i)=>`<div class="persona"><div class="av">${'①②③④⑤⑥'[i]||i+1}</div><div><h4>${esc(p.name)}</h4><p class="small">${md(p.desc)}</p>${(p.tags||[]).map(t=>`<span class="ptag">${esc(t)}</span>`).join('')}<div>${evBtns(p.ev)}</div></div></div>`).join('')||'<p class="muted">자료가 충분하지 않아 유형을 도출하지 않았습니다.</p>';
+$('#empC').textContent=C.empathy?.center||DATA.target.label+' 참여자';
+const EM=C.empathy||{};const EQ=[['says','SAYS','var(--q4)','<b class="b b-fact">원문 그대로</b>'],['thinks','THINKS','var(--q1)','<b class="b b-ai">AI 해석</b>'],['does','DOES','var(--q2)','<b class="b b-fact">관찰</b>'],['feels','FEELS','var(--q3)','<b class="b b-ai">AI 해석 · 원문 단서</b>']];
+const TONE={pos:'<span class="b b-fact">긍정</span> ',neg:'<span class="b b-crit">부정</span> ',neu:'<span class="b b-fix">중립</span> '};
+$('#emp').innerHTML=EQ.map(([k,l,c,b])=>`<div class="quad"><div class="qh"><span class="dot" style="background:${c}"></span>${l} ${b}</div><ul>${(EM[k]||[]).map(x=>`<li>${TONE[x.tone]||''}${md(x.text)} ${evBtns(x.ev)}</li>`).join('')}</ul></div>`).join('');
+$('#pgn').innerHTML=[['pains','PAIN POINTS','var(--crit)'],['gains','GAINS','var(--fact)'],['needs','NEEDS','var(--live)']].map(([k,l,c])=>`<div class="card"><h4 style="color:${c}">${l}</h4><p class="small">${md(EM[k]||'')}</p></div>`).join('');
+$('#ppGrid').innerHTML=(C.pain_points||[]).map((p,i)=>`<div class="pp ${['','s2','s3','s4'][i%4]}"><h4>${esc(p.title)}</h4><p class="small"><b>유형</b> ${esc(p.type)}<br><b>발생 맥락</b> ${md(p.context)}</p><div class="strength">근거 강도 ${[1,2,3].map(j=>`<i class="${j<=p.strength?'f':''}"></i>`).join('')} <span>${esc(p.strength_label)}</span></div><div style="margin-top:6px">${evBtns(p.ev)}</div></div>`).join('');
+$('#ppRel').innerHTML=`<h4><b class="b b-ai">AI 해석</b> Pain Point 간 관계</h4><p class="small">${md(C.pain_relation||'')}</p>`;
+$('#probs').innerHTML=(C.problem_statements||[]).map(p=>`<div class="prob-stmt" style="margin-bottom:12px"><div class="stmt"><div class="lab">${esc(p.scope||'')} · 사용자는 [어떤 상황에서]</div><p>${md(p.situation)}</p></div><div class="stmt need"><div class="lab">[무엇을 필요로 한다]</div><p>${md(p.need)}</p></div><div class="stmt why"><div class="lab">왜냐하면 [분석으로 확인된 이유]</div><p>${md(p.because)}</p></div></div>`).join('');
+$('#hmwList').innerHTML=(C.hmw||[]).map((h,i)=>`<div class="hmw"><div class="hn">H${i+1}</div><div><p class="q">우리가 어떻게 하면 ${md(h.q)}</p><p class="muted">근거: ${md(h.basis)}</p>${evBtns(h.ev)}</div></div>`).join('');
+const TIER={t1:'우선 검토',t2:'검토',t3:'탐색',t0:'유지'};
+$('#recList').innerHTML=(C.recommendations||[]).map(r=>`<details class="rec"><summary><span class="tier ${r.tier}">${esc(r.tier_label||TIER[r.tier])}</span><span class="rt">${esc(r.id)} ${esc(r.title)}</span><span class="muted">${esc(r.who)}</span></summary><div class="rb">
+ <div class="k">개선이 필요한 사항</div><div>${md(r.need)}</div><div class="k">분석 근거 · 확인</div><div>${md(r.evidence)} ${evBtns(r.ev)}</div>
+ <div class="k">관련 교육·유형</div><div>${md(r.who)}</div><div class="k">개선 방향 · AI</div><div>${md(r.direction)}</div>
+ <div class="k">실행 아이디어 · AI</div><div>${md(r.ideas)}</div><div class="k">기대 효과</div><div>${md(r.effect)}</div>
+ <div class="k">제약·추가 확인</div><div>${md(r.constraints)}</div><div class="k">차기 설문 평가 방법</div><div>${md(r.evaluation)}</div></div></details>`).join('');
+$('#recOpen').onclick=()=>{const all=$$('#recList details');const open=!all.every(d=>d.open);all.forEach(d=>d.open=open);$('#recOpen').textContent=open?'모두 접기':'모두 펼치기';};
+addEventListener('beforeprint',()=>$$('details').forEach(d=>d.open=true));
+$('#limits').innerHTML=(C.limitations||[]).map(t=>`<li>${md(t)}</li>`).join('');
+$('#foot').textContent=`생성: ${DATA.generated} · 분석·작성: Claude(AI) · 원자료: 학술정보교육 설문 분석 패키지 · 이 보고서의 AI 해석은 표기된 분석 범위에 고정되어 있으며, 필터 조작으로 자동 재분석되지 않습니다.`;
+
+// ---------- drawer & evidence
+function openDrawer(title,sub,html){$('#dTitle').textContent=title;$('#dSub').textContent=sub;$('#dBody').innerHTML=html;$('#drawer').classList.add('open');$('#drawer').setAttribute('aria-hidden','false');$('#dBody').scrollTop=0;bindEv($('#dBody'));}
+$('#dClose').onclick=()=>{$('#drawer').classList.remove('open');$('#drawer').setAttribute('aria-hidden','true');};
+addEventListener('keydown',e=>{if(e.key==='Escape')$('#dClose').click();});
+function bindEv(root){
+  root.querySelectorAll('.ev[data-q]').forEach(b=>b.onclick=()=>{const ids=b.dataset.q.split(',');const qs=ids.map(i=>QBY[i]).filter(Boolean);openDrawer('원문 근거 '+qs.length+'건','주관식 원문(비식별, 실명 마스킹)',qs.map(quoteHTML).join('')+(qs.length<ids.length?'<p class="muted">일부 ID를 찾지 못했습니다.</p>':''));});
+  root.querySelectorAll('.ev[data-r]').forEach(b=>b.onclick=()=>openResp(b.dataset.r.split(',')));
+  root.querySelectorAll('.ev[data-edu]').forEach(b=>b.onclick=()=>openEdu(+b.dataset.edu,0));
+  root.querySelectorAll('.ev[data-theme]').forEach(b=>b.onclick=()=>{const c=b.dataset.theme,sc=b.dataset.scope;const qs=Q.filter(q=>q.g===sc&&q.c.includes(c));openDrawer((TL[c]||c)+' · '+new Set(qs.map(q=>q.rid)).size+'명',(sc==='TARGET'?DATA.target.label:'그 외 교육')+' 주관식 주제 원문',qs.map(quoteHTML).join(''));});
+}
+function renderVerify(){
+  $('#verMeta').innerHTML='<tbody>'+[['패키지',MT.package],['Export ID',MT.export],['데이터 버전',MT.dataset],['정량분석 실행',MT.quant],['정성분석 실행',MT.qual],['패키지 생성',MT.created],['manifest 검증',MT.validation],['정성 코딩',DATA.codingNote]].map(r=>`<tr><th>${r[0]}</th><td>${esc(r[1])}</td></tr>`).join('')+'</tbody>';
+  $('#verTbl').innerHTML='<thead><tr><th>지표</th><th class="n">공식 n</th><th class="n">재계산 n</th><th class="n">공식 평균</th><th class="n">재계산</th><th class="n">공식 동일가중</th><th class="n">재계산</th><th>결과</th></tr></thead><tbody>'+DATA.official.map(o=>{const k=M.indexOf(o.metric);const a=agg(R,k,'row'),eq=eduEq(R,k);const ok=a.n===o.n&&Math.abs(a.mean-o.mean)<0.0006&&Math.abs(eq.m-o.eqw)<0.0006;return `<tr><td>${MS[o.metric]}</td><td class="n">${o.n}</td><td class="n">${a.n}</td><td class="n">${o.mean.toFixed(3)}</td><td class="n">${f3(a.mean)}</td><td class="n">${o.eqw.toFixed(3)}</td><td class="n">${f3(eq.m)}</td><td class="vres ${ok?'ok':''}" style="${ok?'':'color:var(--crit)'}">${ok?'일치':'불일치'}</td></tr>`}).join('')+'</tbody>';
+}
+const secs=$$('main section'),links=$$('#toc a');
+addEventListener('scroll',()=>{let cur=secs[0].id;secs.forEach(s=>{if(s.getBoundingClientRect().top<120)cur=s.id;});links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur));},{passive:true});
+function renderAll(){renderExplorer();renderQual();renderTarget();renderTargetStatic();bindEv(document);}
+renderAll();renderVerify();
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderAll,150);});
+window.__REPORT_OK__=true;
+})();
+</script>
+</body>
+</html>
