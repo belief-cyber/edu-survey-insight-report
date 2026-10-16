@@ -77,8 +77,8 @@
 
 ### Claude Code
 ```bash
-git clone https://github.com/<계정>/<저장소>.git
-cp -r <저장소>/edu-survey-insight-report ~/.claude/skills/
+git clone https://github.com/belief-cyber/edu-survey-insight-report.git
+cp -r edu-survey-insight-report/edu-survey-insight-report ~/.claude/skills/
 ```
 
 ---
