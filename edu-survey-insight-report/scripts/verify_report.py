@@ -81,7 +81,24 @@ async def run(o):
         for sid in ['s0', 's2', 's3', 's4', 's5', 's8']:
             el = await pg.query_selector('#' + sid)
             if el: await el.screenshot(path=os.path.join(o.shots, f'{sid}.png'))
-        await pg.pdf(path=os.path.join(o.shots, 'print.pdf'), format='A4', print_background=True)
+        # --- 인쇄 준비 검사: 인쇄 버튼, 접힌 내용 펼침, 필터·검색창 숨김, 인쇄 후 복원 ---
+        check('print_button', await pg.query_selector('#printbtn') is not None)
+        await pg.evaluate("()=>{document.querySelectorAll('details').forEach(d=>d.open=false)}")
+        await pg.evaluate("()=>dispatchEvent(new Event('beforeprint'))")
+        await pg.emulate_media(media='print')
+        pr = await pg.evaluate("""()=>{const vis=s=>[...document.querySelectorAll(s)].filter(e=>getComputedStyle(e).display!=='none').length;
+          const det=[...document.querySelectorAll('details')];
+          return {closed:det.filter(d=>!d.open).length,total:det.length,filters:vis('.filters'),inputs:vis('input,select'),btn:vis('#printbtn,.themebtn'),
+                  theme:document.documentElement.dataset.theme||''};}""")
+        check('print_expanded', pr['closed'] == 0, f"details {pr['total']}개 중 닫힘 {pr['closed']}")
+        check('print_hides_controls', pr['filters'] == 0 and pr['inputs'] == 0 and pr['btn'] == 0, str(pr))
+        check('print_light_theme', pr['theme'] == 'light', pr['theme'])
+        await pg.pdf(path=os.path.join(o.shots, 'print.pdf'), format='A4', print_background=True,
+                     margin={'top': '0', 'bottom': '0', 'left': '0', 'right': '0'}, prefer_css_page_size=True)
+        await pg.emulate_media(media='screen')
+        await pg.evaluate("()=>dispatchEvent(new Event('afterprint'))")
+        rest = await pg.evaluate("()=>[...document.querySelectorAll('details')].filter(d=>d.open).length")
+        check('print_restores_screen', rest == 0, f'인쇄 후 펼침 {rest}개')
         m = await b.new_page(viewport={'width': 390, 'height': 844}); await m.goto(url); await m.wait_for_timeout(300)
         ov = await m.evaluate('document.documentElement.scrollWidth-innerWidth'); check('mobile_no_hscroll', ov <= 0, f'{ov}px')
         d = await b.new_page(viewport={'width': 1280, 'height': 900}, color_scheme='dark'); await d.goto(url); await d.wait_for_timeout(300)

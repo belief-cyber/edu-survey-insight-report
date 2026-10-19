@@ -166,6 +166,8 @@ tr.click{cursor:pointer}
 .ok{color:var(--fact);font-weight:700}
 footer{padding:20px 48px 30px;color:var(--ink3);font-size:12px;border-top:1px solid var(--line)}
 .only-print{display:none}
+.printbtn{flex-shrink:0;border:1px solid var(--s1,#2f6fde);background:var(--s1,#2f6fde);color:#fff;border-radius:6px;font-size:12px;font-weight:700;padding:4px 12px;margin:8px 0 8px 6px;cursor:pointer}
+.themebtn+.printbtn{margin-left:6px}
 @media screen and (max-width:820px){
   main{padding:24px 18px}header.top{padding:28px 20px}nav.toc{padding:0 10px}
   .g2,.g3,.g4,.issue-grid,.emp,.pgn{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.flow>div{border-right:0;border-bottom:1px solid var(--line)}
@@ -177,7 +179,9 @@ footer{padding:20px 48px 30px;color:var(--ink3);font-size:12px;border-top:1px so
   body{background:#fff;padding:0;font-size:11.5px}
   :root{--bg:#fff;--page:#fff}
   .page{box-shadow:none;border-radius:0;max-width:none}
-  nav.toc,.filters .btn,#drawer,#tip,.noprint,.themebtn{display:none!important}
+  nav.toc,.filters,.filters .btn,#drawer,#tip,.noprint,.themebtn,.printbtn,input,select,button:not(.ev){display:none!important}
+  .ev{pointer-events:none}
+  .print-note{display:block!important}
   .only-print{display:block}
   main{padding:10px 0}
   header.top{padding:20px 22px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -200,7 +204,8 @@ footer{padding:20px 48px 30px;color:var(--ink3);font-size:12px;border-top:1px so
 .hscroll{overflow-x:auto}
 .hscroll svg{display:block}
 tr.tgt td:first-child{font-weight:700;color:var(--s2)}
-@media print{.hscroll{overflow:visible}#quoteList .quote:nth-child(n+7){display:none}#quoteList::after{content:'(인쇄본에는 원문 6건까지만 표시 — 전체 원문은 화면에서 조회)';font-size:10px;color:#7d8796}}
+@media print{.hscroll{overflow:visible}#quoteList .quote{break-inside:avoid}#s2q .g2{grid-template-columns:1fr}#quoteList.many .quote:nth-child(n+41){display:none}#quoteList.many::after{content:'(인쇄본에는 원문 40행까지 싣습니다 — 전체 ' attr(data-n) '행은 HTML 화면에서 조회)';display:block;font-size:10px;color:#7d8796;margin-top:6px}}
+.print-note{display:none;font-size:10.5px;color:var(--ink3);margin:0 0 8px}
 </style>
 </head>
 <body>
@@ -214,7 +219,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
 </header>
 <nav class="toc" id="toc">
   <a href="#s0">요약</a><a href="#s1">1 데이터·범위</a><a href="#s2">2 전체 교육 탐색</a><a href="#s2q">2-Q 주관식 탐색</a><a href="#s3">3 대상 교육 심층</a><a href="#s4">4 통합 인사이트</a><a href="#s5">5 이슈·유형·공감맵</a><a href="#s6">6 Pain Point·문제정의</a><a href="#s7">7 HMW</a><a href="#s8">8 개선 권고</a><a href="#s9">9 한계·검증</a>
-  <button class="themebtn" id="themebtn" type="button">화면 테마</button>
+  <button class="themebtn" id="themebtn" type="button">화면 테마</button><button class="printbtn" id="printbtn" type="button" title="접힌 내용을 모두 펼치고 필터·검색창을 뺀 A4 인쇄본으로 저장합니다">PDF 인쇄(A4)</button>
 </nav>
 <main>
 <div class="legendbar">
@@ -222,7 +227,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
   <span><b class="b b-ai">AI 해석</b> 담당자 관점의 추론(분석 범위 고정, 필터와 무관)</span>
   <span><b class="b b-live">필터 연동</b> 선택에 따라 브라우저에서 즉시 재계산되는 통계</span>
   <span><b class="b b-warn">해석 제한</b> 척도·표본 문제로 해석을 제한하는 항목</span>
-  <span>근거 버튼 <button class="ev" type="button" disabled>원문 3</button> 을 누르면 원문·응답ID를 조회합니다.</span>
+  <span class="noprint">근거 버튼 <button class="ev" type="button" disabled>원문 3</button> 을 누르면 원문·응답ID를 조회합니다.</span>
 </div>
 
 <section id="s0">
@@ -255,7 +260,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
     <label>집계 기준<span class="seg" id="fBasis"><button type="button" data-v="row" class="on">설문 행</button><button type="button" data-v="person">추정 인원</button></span></label>
     <button class="btn" id="fReset" type="button">초기화</button>
   </div>
-  <div class="scope" id="scopeLine"></div>
+  <p class="print-note">인쇄본: 인쇄 시점의 필터 상태(아래 범위)로 계산한 결과입니다. 필터 조작은 HTML 화면에서 할 수 있습니다.</p><div class="scope" id="scopeLine"></div>
   <div id="diffWarn"></div>
   <div class="kpis" id="kpis"></div>
   <div class="grid g2">
@@ -263,7 +268,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
     <div class="chartbox"><h4><span>응답 분포(100%)</span><span class="muted">1점 → 5점</span></h4><div id="distChart"></div>
       <div class="lk"><span><i style="background:var(--l1)"></i>1 매우 그렇지 않다</span><span><i style="background:var(--l2)"></i>2</span><span><i style="background:var(--l3)"></i>3 보통</span><span><i style="background:var(--l4)"></i>4</span><span><i style="background:var(--l5)"></i>5 매우 그렇다</span></div></div>
   </div>
-  <h3>교육별 상세 통계 <b class="b b-live">필터 연동</b> <span class="muted">· 열 제목 클릭=정렬, 행 클릭=분포·주관식 근거 조회</span></h3>
+  <h3>교육별 상세 통계 <b class="b b-live">필터 연동</b> <span class="muted noprint">· 열 제목 클릭=정렬, 행 클릭=분포·주관식 근거 조회</span></h3>
   <div class="tablewrap"><table id="eduTbl"></table></div>
   <div class="card ai" style="margin-top:18px" id="explorerAI"></div>
 </section>
@@ -277,9 +282,9 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
     <label>신분<select id="qStat"></select></label>
     <label>원문 검색<input type="search" id="qSearch" placeholder="키워드"></label>
   </div>
-  <div class="scope" id="qScopeLine"></div>
+  <p class="print-note">인쇄본: 인쇄 시점에 선택된 범위·주제의 원문을 모두 싣습니다.</p><div class="scope" id="qScopeLine"></div>
   <div class="grid g2">
-    <div class="chartbox"><h4><span>주제별 고유 응답자 수</span><span class="muted">막대 클릭 → 원문</span></h4><div id="themeChart"></div>
+    <div class="chartbox"><h4><span>주제별 고유 응답자 수</span><span class="muted noprint">막대 클릭 → 원문</span></h4><div id="themeChart"></div>
       <div class="lk"><span><i style="background:var(--s3)"></i>긍정 경험</span><span><i style="background:var(--s2)"></i>불편·개선 요구</span><span><i style="background:var(--s5)"></i>교육수요·의향</span></div></div>
     <div class="chartbox"><h4><span id="quoteTitle">원문</span><span class="muted" id="quoteCount"></span></h4><div id="quoteList" style="max-height:620px;overflow:auto"></div></div>
   </div>
@@ -294,7 +299,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
   </div>
   <div class="scope" id="tScopeLine"></div>
   <div class="grid g2">
-    <div class="chartbox"><h4><span>교육 × 지표 평균</span><span class="muted">셀 클릭 → 분포·응답ID</span></h4><div class="hscroll" id="tHeat"></div></div>
+    <div class="chartbox"><h4><span>교육 × 지표 평균</span><span class="muted noprint">셀 클릭 → 분포·응답ID</span></h4><div class="hscroll" id="tHeat"></div></div>
     <div class="chartbox"><h4><span id="tDistTitle">교육별 응답 분포</span><span class="muted">n 표시</span></h4><div id="tDist"></div></div>
   </div>
   <div class="grid g2" style="margin-top:14px">
@@ -526,7 +531,7 @@ function renderQual(){
 function renderQuotes(base){
   let qs=base;if(QS.theme)qs=qs.filter(q=>q.c.includes(QS.theme));if(QS.s)qs=qs.filter(q=>q.t.includes(QS.s));
   $('#quoteTitle').innerHTML=QS.theme?`원문 · ${esc(TL[QS.theme])} <button class="ev" id="qClear">주제 해제</button>`:(QS.s?'원문 검색 결과':'원문 (주제를 선택하세요)');
-  $('#quoteCount').textContent=qs.length+'행';$('#quoteList').innerHTML=qs.slice(0,200).map(quoteHTML).join('')||'<p class="muted">해당 원문 없음</p>';
+  $('#quoteCount').textContent=qs.length+'행';$('#quoteList').dataset.n=qs.length;$('#quoteList').classList.toggle('many',qs.length>40);$('#quoteList').innerHTML=qs.slice(0,200).map(quoteHTML).join('')||'<p class="muted">해당 원문 없음</p>';
   const c=$('#qClear');if(c)c.onclick=()=>{QS.theme=null;renderQuotes(base);};
 }
 
@@ -612,7 +617,11 @@ $('#recList').innerHTML=(C.recommendations||[]).map(r=>`<details class="rec"><su
  <div class="k">실행 아이디어 · AI</div><div>${md(r.ideas)}</div><div class="k">기대 효과</div><div>${md(r.effect)}</div>
  <div class="k">제약·추가 확인</div><div>${md(r.constraints)}</div><div class="k">차기 설문 평가 방법</div><div>${md(r.evaluation)}</div></div></details>`).join('');
 $('#recOpen').onclick=()=>{const all=$$('#recList details');const open=!all.every(d=>d.open);all.forEach(d=>d.open=open);$('#recOpen').textContent=open?'모두 접기':'모두 펼치기';};
-addEventListener('beforeprint',()=>$$('details').forEach(d=>d.open=true));
+let __pp=null;
+function prepPrint(){if(__pp)return;const r=document.documentElement;__pp={theme:r.dataset.theme,open:$$('details').map(d=>d.open)};$$('details').forEach(d=>d.open=true);r.dataset.theme='light';$('#drawer').classList.remove('open');renderAll();}
+function endPrint(){if(!__pp)return;const r=document.documentElement;if(__pp.theme)r.dataset.theme=__pp.theme;else delete r.dataset.theme;$$('details').forEach((d,i)=>d.open=!!__pp.open[i]);__pp=null;renderAll();}
+addEventListener('beforeprint',prepPrint);addEventListener('afterprint',endPrint);
+$('#printbtn').onclick=()=>{prepPrint();setTimeout(()=>window.print(),60);};
 $('#limits').innerHTML=(C.limitations||[]).map(t=>`<li>${md(t)}</li>`).join('');
 $('#foot').textContent=`생성: ${DATA.generated} · 분석·작성: Claude(AI) · 원자료: 학술정보교육 설문 분석 패키지 · 이 보고서의 AI 해석은 표기된 분석 범위에 고정되어 있으며, 필터 조작으로 자동 재분석되지 않습니다.`;
 
