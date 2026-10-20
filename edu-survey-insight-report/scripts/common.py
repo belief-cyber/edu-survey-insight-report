@@ -1,4 +1,4 @@
-"""Shared loaders and calculation rules for 학술정보교육 분석 패키지 (education-analysis-package-v1).
+"""Shared loaders and calculation rules for 학술정보교육 설문 데이터셋 (education-analysis-package-v1).
 
 All analysis scripts import from here so that every run applies the same rules:
 - valid numeric answer  = 분석포함=Y & 수치값 numeric & 비교가능성 in {A,B}
