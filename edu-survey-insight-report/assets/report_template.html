@@ -623,7 +623,7 @@ function endPrint(){if(!__pp)return;const r=document.documentElement;if(__pp.the
 addEventListener('beforeprint',prepPrint);addEventListener('afterprint',endPrint);
 $('#printbtn').onclick=()=>{prepPrint();setTimeout(()=>window.print(),60);};
 $('#limits').innerHTML=(C.limitations||[]).map(t=>`<li>${md(t)}</li>`).join('');
-$('#foot').textContent=`생성: ${DATA.generated} · 분석·작성: Claude(AI) · 원자료: 학술정보교육 설문 분석 패키지 · 이 보고서의 AI 해석은 표기된 분석 범위에 고정되어 있으며, 필터 조작으로 자동 재분석되지 않습니다.`;
+$('#foot').textContent=`생성: ${DATA.generated} · 분석·작성: Claude(AI) · 원자료: 학술정보교육 설문 설문 데이터셋 · 이 보고서의 AI 해석은 표기된 분석 범위에 고정되어 있으며, 필터 조작으로 자동 재분석되지 않습니다.`;
 
 // ---------- drawer & evidence
 function openDrawer(title,sub,html){$('#dTitle').textContent=title;$('#dSub').textContent=sub;$('#dBody').innerHTML=html;$('#drawer').classList.add('open');$('#drawer').setAttribute('aria-hidden','false');$('#dBody').scrollTop=0;bindEv($('#dBody'));}
