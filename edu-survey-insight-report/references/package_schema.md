@@ -1,4 +1,4 @@
-# 분석 패키지 데이터 구조 (education-analysis-package-v1)
+# 설문 데이터셋 데이터 구조 (education-analysis-package-v1)
 
 패키지는 ZIP 하나에 아래 파일이 들어 있다. `inspect_package.py`가 필수 파일·SHA256·건수를 확인한다.
 다른 버전의 패키지가 오면 이 문서의 열 이름과 실제 파일을 먼저 대조하고, 다르면 `scripts/common.py`의 열 이름만 고친다.
