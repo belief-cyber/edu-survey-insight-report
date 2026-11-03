@@ -264,9 +264,9 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
   <div id="diffWarn"></div>
   <div class="kpis" id="kpis"></div>
   <div class="grid g2">
-    <div class="chartbox"><h4><span id="barTitle">비교</span><span class="muted">막대=평균(1~5) · 라벨=n</span></h4><div id="barChart"></div></div>
-    <div class="chartbox"><h4><span>응답 분포(100%)</span><span class="muted">1점 → 5점</span></h4><div id="distChart"></div>
-      <div class="lk"><span><i style="background:var(--l1)"></i>1 매우 그렇지 않다</span><span><i style="background:var(--l2)"></i>2</span><span><i style="background:var(--l3)"></i>3 보통</span><span><i style="background:var(--l4)"></i>4</span><span><i style="background:var(--l5)"></i>5 매우 그렇다</span></div></div>
+    <div class="chartbox"><h4><span id="barTitle">비교</span><span class="muted" id="barNote">막대=평균(1~5) · 라벨=n</span></h4><div id="barChart"></div></div>
+    <div class="chartbox"><h4><span>응답 분포(100%)</span><span class="muted" id="distNote">1점 → 5점</span></h4><div id="distChart"></div>
+      <div class="lk" id="distLegend"><span><i style="background:var(--l1)"></i>1 매우 그렇지 않다</span><span><i style="background:var(--l2)"></i>2</span><span><i style="background:var(--l3)"></i>3 보통</span><span><i style="background:var(--l4)"></i>4</span><span><i style="background:var(--l5)"></i>5 매우 그렇다</span></div></div>
   </div>
   <h3>교육별 상세 통계 <b class="b b-live">필터 연동</b> <span class="muted noprint">· 열 제목 클릭=정렬, 행 클릭=분포·주관식 근거 조회</span></h3>
   <div class="tablewrap"><table id="eduTbl"></table></div>
@@ -386,7 +386,9 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 const f2=v=>v==null||isNaN(v)?'–':v.toFixed(2), f3=v=>v==null||isNaN(v)?'–':v.toFixed(3), pct=v=>v==null||isNaN(v)?'–':(v*100).toFixed(1)+'%';
 const C=CONTENT, M=DATA.metrics, ML=DATA.metricKo, MS=DATA.metricShort, E=DATA.edus, TL=DATA.codeLabel, TP=DATA.codePol;
-const DIFF=M.indexOf('difficulty_appropriateness');
+const DIFFS=(DATA.difficulty||['difficulty_appropriateness']).map(x=>M.indexOf(x)).filter(i=>i>=0),BIP=M.indexOf(DATA.bipolar||'difficulty_level'),LV=DATA.levelKo||['매우 쉬움','쉬움','적절','어려움','매우 어려움'];
+const isDiff=i=>DIFFS.includes(i),DIFF=DIFFS.length?DIFFS[0]:-1;
+function distLab(mi,k){return mi===BIP?LV[k]:(k+1)+'점';}
 const R=DATA.resp.map(r=>({rid:r[0],e:r[1],ed:E[r[1]],st:r[2],p:r[3],ch:r[4],v:r.slice(5)}));
 const Q=DATA.qual; const QBY={}; Q.forEach(q=>QBY[q.id]=q);
 const RBY={}; R.forEach(r=>RBY[r.rid]=r);
@@ -446,7 +448,7 @@ $('#tgtMetaTbl').innerHTML='<thead><tr><th>교육ID</th><th>교육명</th><th>�
 const opts=arr=>['<option value="">전체</option>'].concat([...new Set(arr)].filter(v=>v!=null&&v!=='').sort().map(v=>`<option>${esc(v)}</option>`)).join('');
 $('#fYear').innerHTML=opts(E.map(e=>e.y));$('#fType').innerHTML=opts(E.filter(e=>e.resp).map(e=>e.type));$('#fMode').innerHTML=opts(E.filter(e=>e.resp).map(e=>e.mode));$('#fStat').innerHTML=opts(R.map(r=>r.st));
 $('#fSer').innerHTML='<option value="">전체</option>'+[...new Map(E.map(e=>[e.ser,e.serName])).entries()].sort((a,b)=>a[1].localeCompare(b[1],'ko')).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('');
-$('#fMetric').innerHTML=M.map((m,i)=>`<option value="${i}">${ML[m]}${i===DIFF?'(해석 제한)':''}</option>`).join('');
+$('#fMetric').innerHTML=M.map((m,i)=>`<option value="${i}">${ML[m]}${isDiff(i)?(i===BIP?'(양극 척도: 비율로 해석)':'(해석 제한)'):''}</option>`).join('');
 const AXES={y:'연도',type:'교육유형',mode:'운영방식',st:'응답자 신분',ser:'교육군',cmp:'비교군'};
 $('#fAxis').innerHTML=Object.entries(AXES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
 let F={y:'',type:'',mode:'',st:'',ser:'',mi:0,axis:'y',basis:'row'};
@@ -478,7 +480,7 @@ function stack(el,items){
     it.dist.forEach((d,k)=>{const bw=d*(x1-x0);if(bw>0){s+=`<rect x="${x}" y="${y+4}" width="${Math.max(0,bw-2)}" height="16" fill="${LCOL[k]}" rx="2"/>`;if(bw>26)s+=`<text x="${x+bw/2-1}" y="${y+16}" text-anchor="middle" style="fill:${k>=3?'#fff':'#1e2a3a'};font-size:10.5px">${Math.round(d*100)}</text>`;}x+=bw;});
     s+=`<text x="${w-2}" y="${y+16}" text-anchor="end">n=${it.n}</text><rect class="hit" x="0" y="${y}" width="${w}" height="${rh}"/></g>`;});
   el.innerHTML=s+'</svg>';
-  el.querySelectorAll('g.bar').forEach(g=>{const it=items[+g.dataset.i];g.onmousemove=ev=>showTip(ev,`<b>${esc(it.label)}</b><br>`+it.dist.map((d,k)=>`${k+1}점 ${(d*100).toFixed(1)}%`+(it.cnt?` (${+it.cnt[k].toFixed(2)})`:'')).join('<br>'));g.onmouseleave=hideTip;});
+  el.querySelectorAll('g.bar').forEach(g=>{const it=items[+g.dataset.i];g.onmousemove=ev=>showTip(ev,`<b>${esc(it.label)}</b><br>`+it.dist.map((d,k)=>`${distLab(F.mi,k)} ${(d*100).toFixed(1)}%`+(it.cnt?` (${+it.cnt[k].toFixed(2)})`:'')).join('<br>'));g.onmouseleave=hideTip;});
 }
 let sortK='n',sortD=-1;
 function renderExplorer(){
@@ -486,19 +488,23 @@ function renderExplorer(){
   const edus=new Set(rows.filter(r=>r.v[mi]!=null).map(r=>r.e)),per=new Set(rows.filter(r=>r.v[mi]!=null).map(r=>r.p));
   const fdesc=[F.y&&('연도 '+F.y),F.type&&('유형 '+F.type),F.mode&&('운영 '+F.mode),F.st&&('신분 '+F.st),F.ser&&('교육군 '+(E.find(e=>e.ser===F.ser)||{}).serName)].filter(Boolean).join(' · ')||'필터 없음(전체)';
   $('#scopeLine').innerHTML=`<b>현재 범위</b> ${esc(fdesc)} · 지표 <b>${ML[m]}</b> · 집계 기준 <b>${F.basis==='row'?'설문 행(응답자 가중)':'추정 인원(분할 운영 단위 동일인 통합)'}</b> · 유효 응답 ${a.n}건 / ${F.basis==='row'?'':'추정 '+a.units+'명 / '}${edus.size}개 교육`;
-  $('#diffWarn').innerHTML=mi===DIFF?`<div class="warnbox"><b>해석 제한</b> ${md(C.difficulty_warning||'난이도 문항은 척도 방향·선택지 구성이 검증되지 않았습니다. 평균을 비교하거나 높낮이로 해석하지 말고 분포만 참고하세요.')}</div>`:(m==='goal_attainment'?'<div class="warnbox">핵심역량 향상 도움도는 교육마다 다른 목표에 대한 자기평가입니다. 한 응답자에게 같은 지표 문항이 2개 이상인 교육은 규칙에 따라 통합 평균에서 제외됩니다(3장 문항별 표 참고).</div>':'');
-  $('#kpis').innerHTML=[['평균('+(F.basis==='row'?'응답자 가중':'추정 인원')+')',f3(a.mean),'1~5점'],['교육 동일가중 평균',f3(eq.m),eq.k+'개 교육'],['5점 비율',pct(a.top),'최고점 응답'],['3점 이하 비율',pct(a.le3),'천장효과 하 민감 지표'],['유효 응답',a.n.toLocaleString()+'건',F.basis==='person'?'추정 '+a.units+'명':'추정 인원 '+per.size+'명'],['교육 수',edus.size+'개','']].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${k[2]}</div></div>`).join('');
+  $('#diffWarn').innerHTML=mi===BIP?`<div class="warnbox"><b>양극 척도</b> ${md(C.bipolar_note||'표준 설문 v2 난이도는 1 매우 쉬웠다 ~ 3 적절했다 ~ 5 매우 어려웠다입니다. 평균이 높다고 좋은 것이 아니므로 ‘적절’ 비율과 쉬움·어려움 방향으로 읽으세요. 구 척도 난이도와 합치거나 비교하지 않습니다.')}</div>`:isDiff(mi)?`<div class="warnbox"><b>해석 제한</b> ${md(C.difficulty_warning||'난이도 문항은 척도 방향·선택지 구성이 검증되지 않았습니다. 평균을 비교하거나 높낮이로 해석하지 말고 분포만 참고하세요.')}</div>`:(m==='goal_attainment'?'<div class="warnbox">핵심역량 향상 도움도는 교육마다 다른 목표에 대한 자기평가입니다. 한 응답자에게 같은 지표 문항이 2개 이상인 교육은 규칙에 따라 통합 평균에서 제외됩니다(3장 문항별 표 참고).</div>':'');
+  const bp=a.n?{e:(a.dist[0]+a.dist[1]),f:a.dist[2],h:(a.dist[3]+a.dist[4])}:null;
+  $('#kpis').innerHTML=(mi===BIP?[['적절(3) 비율',pct(bp&&bp.f),'난이도가 알맞았다'],['쉬움(1~2) 비율',pct(bp&&bp.e),'더 깊게 원함 신호'],['어려움(4~5) 비율',pct(bp&&bp.h),'수준 조정 신호'],['방향',bp?(bp.e>bp.h?'쉬움 쪽':bp.h>bp.e?'어려움 쪽':'균형'):'–','쉬움·어려움 중 많은 쪽'],['유효 응답',a.n.toLocaleString()+'건',F.basis==='person'?'추정 '+a.units+'명':'추정 인원 '+per.size+'명'],['교육 수',edus.size+'개','']]:[['평균('+(F.basis==='row'?'응답자 가중':'추정 인원')+')',f3(a.mean),'1~5점'],['교육 동일가중 평균',f3(eq.m),eq.k+'개 교육'],['5점 비율',pct(a.top),'최고점 응답'],['3점 이하 비율',pct(a.le3),'천장효과 하 민감 지표'],['유효 응답',a.n.toLocaleString()+'건',F.basis==='person'?'추정 '+a.units+'명':'추정 인원 '+per.size+'명'],['교육 수',edus.size+'개','']]).map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${k[2]}</div></div>`).join('');
   const groups={};rows.forEach(r=>{const k=keyOf(r,F.axis)||'미상';(groups[k]=groups[k]||[]).push(r);});
   let items=Object.entries(groups).map(([k,rs])=>{const g=agg(rs,mi,F.basis);return {label:k,v:g.mean,n:F.basis==='row'?g.n:g.units,dist:g.dist,cnt:g.distN,g};}).filter(it=>it.n>0);
   items.sort((x,y)=>F.axis==='y'||F.axis==='cmp'?x.label.localeCompare(y.label,'ko'):(y.n-x.n));
-  items.forEach(it=>it.tip=`<b>${esc(it.label)}</b><br>평균 ${f3(it.v)} · n=${it.n}<br>5점 ${pct(it.g.top)} · 3점 이하 ${pct(it.g.le3)}`);
+  items.forEach(it=>it.tip=mi===BIP?`<b>${esc(it.label)}</b><br>n=${it.n}<br>적절 ${pct(it.dist[2])} · 쉬움 ${pct(it.dist[0]+it.dist[1])} · 어려움 ${pct(it.dist[3]+it.dist[4])}`:`<b>${esc(it.label)}</b><br>평균 ${f3(it.v)} · n=${it.n}<br>5점 ${pct(it.g.top)} · 3점 이하 ${pct(it.g.le3)}`);
   $('#barTitle').textContent=ML[m]+' · '+AXES[F.axis]+'별';
-  const lo=Math.min(...items.map(i=>i.v??5));const mn=mi===DIFF?1:Math.max(1,Math.min(4,Math.floor(lo*2)/2-0.5));
-  hbar($('#barChart'),items,{min:mn,max:5});stack($('#distChart'),items);
+  const lo=Math.min(...items.map(i=>i.v??5));const mn=isDiff(mi)?1:Math.max(1,Math.min(4,Math.floor(lo*2)/2-0.5));
+  if(mi===BIP){items.forEach(it=>it.v=it.dist[2]);hbar($('#barChart'),items,{min:0,max:1,fmt:pct});}else hbar($('#barChart'),items,{min:mn,max:5});stack($('#distChart'),items);
+  if(!window._lk)window._lk=$('#distLegend').innerHTML;
+  $('#barNote').textContent=mi===BIP?'막대=‘적절(3)’ 비율 · 라벨=n':'막대=평균(1~5) · 라벨=n';$('#distNote').textContent=mi===BIP?'매우 쉬움 → 매우 어려움':'1점 → 5점';
+  $('#distLegend').innerHTML=mi===BIP?LV.map((l,k)=>`<span><i style="background:var(--l${k+1})"></i>${k+1} ${l}</span>`).join(''):window._lk;
   const eg={};rows.forEach(r=>{(eg[r.e]=eg[r.e]||[]).push(r);});
-  let er=Object.entries(eg).map(([i,rs])=>{const e=E[i];const g=agg(rs,mi,F.basis);return {i:+i,id:e.id,name:e.name,date:e.date,type:e.type,mode:e.mode,target:e.target,n:F.basis==='row'?g.n:g.units,mean:g.mean,top:g.top,low:Math.round((g.distN[0]+g.distN[1]+g.distN[2])*100)/100,qn:Q.filter(q=>q.e===+i).length};}).filter(x=>x.n>0);
+  let er=Object.entries(eg).map(([i,rs])=>{const e=E[i];const g=agg(rs,mi,F.basis);return {i:+i,id:e.id,name:e.name,date:e.date,type:e.type,mode:e.mode,target:e.target,n:F.basis==='row'?g.n:g.units,mean:g.mean,top:mi===BIP?g.dist[2]:g.top,low:Math.round((mi===BIP?g.distN[3]+g.distN[4]:g.distN[0]+g.distN[1]+g.distN[2])*100)/100,qn:Q.filter(q=>q.e===+i).length};}).filter(x=>x.n>0);
   er.sort((x,y)=>{const a=x[sortK],b=y[sortK];if(typeof a==='string')return sortD*a.localeCompare(b,'ko');return sortD*((a??-1)-(b??-1));});
-  const H=[['id','교육ID'],['name','교육명'],['date','교육일'],['type','유형'],['mode','운영'],['target','대상'],['n','n'],['mean','평균'],['top','5점%'],['low','3점 이하(건)'],['qn','주관식']];
+  const H=[['id','교육ID'],['name','교육명'],['date','교육일'],['type','유형'],['mode','운영'],['target','대상'],['n','n'],['mean',mi===BIP?'평균(참고)':'평균'],['top',mi===BIP?'적절%':'5점%'],['low',mi===BIP?'어려움(건)':'3점 이하(건)'],['qn','주관식']];
   $('#eduTbl').innerHTML='<thead><tr>'+H.map(([k,l])=>`<th data-k="${k}">${l}${sortK===k?(sortD>0?' ▲':' ▼'):''}</th>`).join('')+'</tr></thead><tbody>'+er.map(x=>`<tr class="click${E[x.i].isT?' tgt':''}" data-i="${x.i}"><td>${x.id}</td><td>${esc(x.name)}</td><td>${x.date}</td><td>${esc(x.type)}</td><td>${esc(x.mode)}</td><td>${esc(x.target)}</td><td class="n">${x.n}</td><td class="n">${f2(x.mean)}</td><td class="n">${pct(x.top)}</td><td class="n">${+x.low.toFixed(2)}</td><td class="n">${x.qn}</td></tr>`).join('')+'</tbody>';
   $$('#eduTbl th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortK===k)sortD*=-1;else{sortK=k;sortD=['id','name','date','type','mode','target'].includes(k)?1:-1;}renderExplorer();});
   $$('#eduTbl tr.click').forEach(tr=>tr.onclick=()=>openEdu(+tr.dataset.i,mi));
@@ -554,16 +560,16 @@ function renderTarget(){
   const el=$('#tHeat');const wbox=W(el),lab=110,cw=Math.max(62,(wbox-lab-6)/TE.length),w=lab+cw*TE.length+6,rh=34,top=26,h=top+TM.length*rh+4;
   let s=`<svg viewBox="0 0 ${w} ${h}" style="width:${w}px;max-width:none">`;
   TE.forEach((e,j)=>s+=`<text x="${lab+cw*j+cw/2}" y="16" text-anchor="middle" style="font-weight:700">${esc(shortId(e.id))}</text>`);
-  TM.forEach((mi,k)=>{const y=top+k*rh;const dif=mi===DIFF;s+=`<text x="${lab-8}" y="${y+21}" text-anchor="end">${MS[M[mi]]}${dif?' ⚠':''}</text>`;
+  TM.forEach((mi,k)=>{const y=top+k*rh;const dif=isDiff(mi);s+=`<text x="${lab-8}" y="${y+21}" text-anchor="end">${MS[M[mi]]}${dif?' ⚠':''}</text>`;
     TE.forEach((e,j)=>{const g=agg(rows.filter(r=>r.e===e.i),mi,'row');const x=lab+cw*j;const col=dif?'var(--soft)':heatColor(g.mean);const dark=!dif&&g.mean!=null&&g.mean>=4.7;
-      const lab1=dif?'분포만':(g.n?f2(g.mean):'복수문항');
+      const lab1=dif?(mi===BIP&&g.n?'적절 '+Math.round(g.dist[2]*100)+'%':'분포만'):(g.n?f2(g.mean):'복수문항');
       s+=`<g class="cell" data-mi="${mi}" data-e="${e.i}"><rect x="${x+2}" y="${y+2}" width="${cw-4}" height="${rh-4}" rx="4" fill="${g.n?col:'var(--soft)'}" stroke="var(--line)"/><text x="${x+cw/2}" y="${y+17}" text-anchor="middle" class="val" style="fill:${dark?'#fff':(dif||!g.n?'var(--ink)':'#1e2a3a')}">${lab1}</text><text x="${x+cw/2}" y="${y+29}" text-anchor="middle" style="font-size:10px;fill:${dark?'#e8f1fc':(dif||!g.n?'var(--ink3)':'#3a4553')}">n=${g.n}${g.n&&!dif?' · ≤3: '+Math.round(g.distN[0]+g.distN[1]+g.distN[2]):''}</text><rect class="hit" x="${x}" y="${y}" width="${cw}" height="${rh}"/></g>`;});});
   el.innerHTML=s+'</svg>';
-  $$('#tHeat g.cell').forEach(g=>{const mi=+g.dataset.mi,ei=+g.dataset.e;g.style.cursor='pointer';g.onmousemove=ev=>{const a=agg(rows.filter(r=>r.e===ei),mi,'row');showTip(ev,`<b>${E[ei].id} · ${ML[M[mi]]}</b><br>`+(a.n?`평균 ${f3(a.mean)} · n=${a.n}<br>`+a.distN.map((d,k)=>`${k+1}점 ${Math.round(d)}건`).join(' · '):'복수 문항 지표 — 오른쪽 문항별 표 참고'));};g.onmouseleave=hideTip;g.onclick=()=>openCell(ei,mi,rows);});
+  $$('#tHeat g.cell').forEach(g=>{const mi=+g.dataset.mi,ei=+g.dataset.e;g.style.cursor='pointer';g.onmousemove=ev=>{const a=agg(rows.filter(r=>r.e===ei),mi,'row');showTip(ev,`<b>${E[ei].id} · ${ML[M[mi]]}</b><br>`+(a.n?`평균 ${f3(a.mean)} · n=${a.n}<br>`+a.distN.map((d,k)=>`${distLab(mi,k)} ${Math.round(d)}건`).join(' · '):'복수 문항 지표 — 오른쪽 문항별 표 참고'));};g.onmouseleave=hideTip;g.onclick=()=>openCell(ei,mi,rows);});
   $('#tDistTitle').textContent='교육별 응답 분포 · '+ML[M[TS.mi]];
   const items=TE.map(e=>{const g=agg(rows.filter(r=>r.e===e.i),TS.mi,'row');return {label:shortId(e.id)+' '+e.name,dist:g.dist,n:g.n,cnt:g.distN};}).filter(x=>x.n);
   const all=agg(rows,TS.mi,'row');items.push({label:'대상 통합',dist:all.dist,n:all.n,cnt:all.distN});stack($('#tDist'),items);
-  const cm=TS.mi===DIFF?0:TS.mi;$('#cmpMetricName').textContent=ML[M[cm]]+(TS.mi===DIFF?'(난이도 대신)':'');
+  const cm=isDiff(TS.mi)?0:TS.mi;$('#cmpMetricName').textContent=ML[M[cm]]+(isDiff(TS.mi)?'(난이도 대신)':'');
   const grp={};R.filter(keep).forEach(r=>{(grp[r.ed.cmp]=grp[r.ed.cmp]||[]).push(r);});
   const ci=Object.keys(grp).sort().map(k=>{const g=agg(grp[k],cm,'person');return {label:k,v:g.mean,n:g.units,color:k.startsWith('①')?'var(--s2)':'var(--s1)',right:'≤3 '+pct(g.le3)+' · n='+g.units,tip:`<b>${esc(k)}</b><br>평균 ${f3(g.mean)} · 추정 ${g.units}명<br>3점 이하 ${pct(g.le3)}`};}).filter(x=>x.n);
   const lo=Math.min(...ci.map(c=>c.v??5));hbar($('#cmpChart'),ci,{min:Math.max(1,Math.min(4,Math.floor(lo*2)/2)),max:5});

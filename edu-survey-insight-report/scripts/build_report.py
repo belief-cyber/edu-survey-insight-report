@@ -36,18 +36,19 @@ def main():
         nn = lambda x: None if pd.isna(x) else int(x)
         edus.append(dict(id=r['교육ID'], name=str(r['교육명']), y=r['yr'], type=r['교육유형'] if isinstance(r['교육유형'], str) else '미상',
                          mode=r['운영방식'] if isinstance(r['운영방식'], str) else '미상', target=r['교육대상'] if isinstance(r['교육대상'], str) else '미상',
-                         date=r['date'], ser=r['ser'], serName=f"{sername.get(r['ser'], r['ser'])} ({r['yr']})" if e[e['ser'] == r['ser']]['yr'].nunique() == 1 else sername.get(r['ser']),
+                         date=r['date'] if isinstance(r['date'], str) else '', ser=r['ser'], serName=f"{sername.get(r['ser'], r['ser'])} ({r['yr']})" if e[e['ser'] == r['ser']]['yr'].nunique() == 1 else sername.get(r['ser']),
                          unit=r['unit'], split=bool(r['split']), app=nn(r['신청자수_기준표']), part=nn(r['참여자수_기준표']),
                          resp=int(r['설문응답수']) if not pd.isna(r['설문응답수']) else 0,
                          rr=None if r['응답률계산가능'] != 'Y' else round(float(r['응답률']), 4), isT=r['교육ID'] in T, cmp=r['cmp']))
     eidx = {d['id']: i for i, d in enumerate(edus)}
-    vals = {m: integrated(a, m).set_index('비식별응답ID')['val'].to_dict() for m in METRICS}
+    MET = QR.get('metrics_present') or [m for m in METRICS if len(integrated(a, m))]
+    vals = {m: integrated(a, m).set_index('비식별응답ID')['val'].to_dict() for m in MET}
     ch = a[a['표준분석항목ID'] == 'awareness_channel'].drop_duplicates('비식별응답ID').set_index('비식별응답ID')['원본응답값'].to_dict()
     pid = {}; resp = []
     for _, r in s.iterrows():
         rid = r['비식별응답ID']; pid.setdefault(r['person'], len(pid))
         resp.append([rid, eidx[r['교육ID']], r['응답자신분'] if isinstance(r['응답자신분'], str) else '미분류', pid[r['person']], norm_channel(ch.get(rid))] +
-                    [None if pd.isna(vals[m].get(rid, np.nan)) else int(vals[m][rid]) for m in METRICS])
+                    [None if pd.isna(vals[m].get(rid, np.nan)) else int(vals[m][rid]) for m in MET])
     items = [dict(edu=it['id'], **{k: x[k] for k in ['metric', 'qid', 'text', 'n', 'mean', 'dist']}) for it in QR['target_edus'] for x in it['items']]
     for m in {x['metric'] for x in items}:
         grp = [x for x in items if x['metric'] == m]
@@ -67,9 +68,8 @@ def main():
     data = dict(meta=dict(package=man.get('package_version'), export=man.get('export_id'), dataset=man.get('dataset_version_id'),
                           quant=man.get('analysis_run_id'), qual=man.get('qualitative_run_id'), created=man.get('created_at'), counts=man.get('counts'),
                           validation=f"passed={val.get('passed')} · 직접식별자 검사 {((man.get('privacy') or {}).get('direct_identifier_scan')) or '정보 없음'}"),
-                metrics=METRICS, metricKo=METRIC_KO,
-                metricShort={'overall_satisfaction': '전반 만족', 'content_usefulness': '유익성', 'delivery_method_satisfaction': '진행방식', 'instructor_delivery': '강사',
-                             'class_duration_satisfaction': '교육시간', 'goal_attainment': '핵심역량', 'difficulty_appropriateness': '난이도'},
+                metrics=MET, metricKo=METRIC_KO, metricShort=METRIC_SHORT, difficulty=DIFFICULTY, bipolar=BIPOLAR, levelKo=LEVEL5_KO,
+                versionMix=QR.get('version_mix'),
                 edus=edus, resp=resp, qual=qual, targetItems=items, itemScores=item_scores,
                 codeLabel={c['code']: c['label'] for c in cb['codes']}, codePol={c['code']: c['polarity'] for c in cb['codes']},
                 official=[dict(metric=c['metric'], n=c['official_n'], mean=c['official_mean'], eqw=c['official_eqw']) for c in QR['official_check']],

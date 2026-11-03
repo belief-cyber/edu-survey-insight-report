@@ -17,6 +17,7 @@
 | data_lead, data_notes[{badge: warn/fact/fix, title, text, ev}] | 데이터 특성. 스켈레톤이 자동 작성 → 다듬기 |
 | explorer_interpretation{scope, items[]} | 전체 교육 탐색 결과 해석(교란 요인, 천장효과 등) |
 | difficulty_warning | 난이도 선택 시 경고 문구 |
+| bipolar_note | (선택) 표준 설문 v2 난이도(양극 척도) 선택 시 안내 문구. 비우면 기본 문구 |
 | target_lead | 대상 교육 개요 + 교육 간 차이 검정 결과 |
 | target_default_metric | 대상 분포 차트 기본 지표 인덱스(0 전반, 1 유익성, 2 진행방식, 3 강사, 4 교육시간, 5 핵심역량) |
 | sensitivity{exclude[응답ID], label, reason} | 척도 역방향 의심 응답 민감도 토글. 없으면 빈 배열 |

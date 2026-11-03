@@ -33,7 +33,7 @@ def main():
                               text=f"1점 {b['p1']:.1%}, 2점 {b['p2']:.1%}, 전반 만족 5점 응답자 중 1점 {b['p1_among_overall5'] or 0:.1%}. 척도 방향·선택지 구성 확인 전까지 평균 해석을 제한합니다."))
     cards = {}
     for it in QR['target_edus']:
-        ms = {k: v for k, v in it['metrics'].items() if v['n'] and k != 'difficulty_appropriateness'}
+        ms = {k: v for k, v in it['metrics'].items() if v['n'] and k not in DIFFICULTY}
         low = min(ms.items(), key=lambda kv: kv[1]['mean']) if ms else None
         c = [f"응답 {it['resp']}건(추정 {it['persons']}명) · " + ' · '.join(f'{k} {v}' for k, v in it['status'].items())]
         if low: c.append(f"가장 낮은 지표: {METRIC_KO[low[0]]} {low[1]['mean']:.2f}(n={low[1]['n']})")

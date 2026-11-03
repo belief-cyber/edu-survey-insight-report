@@ -29,6 +29,7 @@ educations.csv ──교육ID──┬─ participation.csv (1:1)
 | `question_dictionary.csv` | 표준분석항목ID, 표준한글명, 원래질문문구, 원본문항ID, 교육ID, 원래응답척도, 비교집계가능성 | 문항 의미·척도 확인 |
 | `quantitative_summary.csv` | 집계수준(전체교육/교육·원문항), 교육ID, 표준분석항목ID, 원문항, 유효응답수, 평균, 표준편차, 교육수, 교육동일가중평균, 응답분포 | **검증 기준표** — 재계산 결과가 반드시 일치해야 함 |
 | `education_groups.csv` | 교육군ID, 교육군명, 교육ID, 상태 | 승인된 교육군(있으면 대상 탐색에 참고) |
+| `survey_items.csv` (2026-11~, 선택) | 설문버전, 단계(사후/신청), 번호(Q1~Q13·P1·S1~SR2), 사용구분(공통/선택/모듈), 영역, 표준분석항목ID, 문항문구, 응답척도(AGREE5/LEVEL5/TEXT/CHOICE/ORDINAL5), 척도보기, 비교가능성, 기존연결(조건부/신규/단절/동일 기능), 기존연결설명, 일치패턴 | 표준 설문 v2 문항 은행. 원문항이 `일치패턴`(공백 제거·앞 번호 제거 후 정규식)과 맞으면 v2 응답 |
 | `improvement_history.csv` | 개선ID, 제목, 영역, 계획내용, 상태, 관련교육ID, 실행일 … | 비어 있으면 "개선 효과 추적 불가"로 명시 |
 
 ## 표준 지표 (표준분석항목ID)
@@ -37,11 +38,18 @@ educations.csv ──교육ID──┬─ participation.csv (1:1)
 |---|---|---|
 | overall_satisfaction | 전반적 만족도 | 명시적 원문항만(산출열·중복열은 분석포함=N) |
 | content_usefulness | 교육내용 유익성 | 교육에 따라 문항 없음 |
-| delivery_method_satisfaction | 진행방식 만족도 | 비교가능성 B(조건부) |
+| delivery_method_satisfaction | 진행방식 만족도 → v2 운영 방식 적절성(Q7) | 비교가능성 B(조건부) |
 | instructor_delivery | 강사 전달력 | |
 | class_duration_satisfaction | 교육시간 만족도 | |
 | goal_attainment | 핵심역량 향상 도움도 | 교육마다 목표 문구가 다름. 한 교육에 문항 2개 이상이면 통합 평균 제외 |
-| difficulty_appropriateness | 난이도 적절성 | 척도 방향 미검증 → 분포만 |
+| difficulty_appropriateness | 난이도 적절성(구 척도) | 척도 방향 미검증 → 분포만 |
+| difficulty_level | 난이도(양극, v2 Q2) | 1 매우 쉬웠다 ~ 3 적절했다 ~ 5 매우 어려웠다. 적절·쉬움·어려움 비율로만 |
+| instruction_composition | 교육 구성 적절성(v2 Q4) | 신규 |
+| schedule_satisfaction | 교육 일정 편리성(v2 Q6) | 기존 6개 교육 '개설 일시' → B |
+| perceived_practical_help | 학업·연구 활용 가능성(v2 Q9) | 기존 논문 특강 '연구 실무 도움' → B |
+| recommendation_intent | 추천 의향(v2 Q11) | 기존 6개 교육 → B |
+| split_find_content | 분할 구성의 탐색 용이성(v2 모듈 P1) | 분할교육 섹션마다 |
+| participation_purpose / prior_level / research_stage / pre_question | 신청 정보(v2 S2·S3·SR2·S4) | 집단 구분 기준. 신청 자료 업로드 기능 추가 전에는 없을 수 있음 |
 | participation_goal_achievement_help | 참여 목적 달성 도움도 | goal_attainment와 별도 지표(합산 금지) |
 | respondent_status / affiliation_major / awareness_channel | 신분·소속·인지경로 | 추정 인원 시그니처에 사용 |
 | open_feedback / future_training_demand / complex_program_operations_feedback | 주관식 | 정성분석 |

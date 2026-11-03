@@ -43,7 +43,10 @@ async def run(o):
         if years:
             await pg.select_option('#fYear', years[-1]); sc = await pg.inner_text('#scopeLine')
             check('year_filter_scope', years[-1] in sc, sc[:120])
-        await pg.select_option('#fMetric', '6'); check('difficulty_warning', len((await pg.inner_text('#diffWarn')).strip()) > 0)
+        diff_opts = await pg.eval_on_selector_all('#fMetric option', "os=>os.filter(o=>/해석 제한|양극 척도/.test(o.textContent)).map(o=>o.value)")
+        for v in diff_opts:
+            await pg.select_option('#fMetric', v); check(f'difficulty_warning[{v}]', len((await pg.inner_text('#diffWarn')).strip()) > 0)
+        if not diff_opts: check('difficulty_warning(난이도 지표 없음)', True)
         await pg.click('#fReset')
         await pg.select_option('#fAxis', 'cmp'); bars = await pg.eval_on_selector_all('#barChart g.bar', 'e=>e.length')
         check('cmp_axis_bars', bars >= 2, f'{bars}')
