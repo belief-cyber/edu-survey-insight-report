@@ -2,6 +2,7 @@
 """Step 2. Resolve the target education group from a name/keyword.
 
 usage: python find_target.py --work W --query "월간 AI 한입" [--year 2026] [--ids A,B] [--label "..."]
+       선택 교육 데이터셋(export_scope=SELECTED)에서 --query/--ids를 주지 않으면 패키지의 모든 교육이 대상이다.
        [--similar "AI,GPT,프롬프트"]  (keywords in 교육명/교육군 for the 'similar-topic' comparison group)
 Matching: 교육명, 교육ID, 교육유형, 교육군 key (spaces ignored, case-insensitive).
 writes W/target.json. Always show the printed list to the user when more than one 교육군 matched.
@@ -28,8 +29,11 @@ def main():
     ins = jload(os.path.join(o.work, 'inspect.json'))
     D = load(ins['pkg_dir'], ins['split_modes'])
     e = D['e']
+    selected = ins.get('scope') == 'SELECTED'
     if o.ids:
         hit = e[e['교육ID'].isin(o.ids.split(','))]
+    elif selected and not o.query.strip():
+        hit = e   # 선택 교육 데이터셋: 대상을 따로 말하지 않으면 고른 교육 전체가 대상
     else:
         qn = norm(o.query)
         m = e.apply(lambda r: any(qn in norm(r[c]) for c in ['교육명', '교육ID', '교육유형', 'serkey']), axis=1)
@@ -50,7 +54,10 @@ def main():
     elif len(names) == 1: label = names[0]
     else: label = f"{'·'.join(sers)} 교육군"
     if not o.label: print(f'표시명 자동 지정: {label} (바꾸려면 --label)')
-    t = dict(label=label, query=o.query, purpose=o.purpose, ids=hit['교육ID'].tolist(),
+    others = [i for i in e['교육ID'] if i not in set(hit['교육ID'])]
+    if selected:
+        print(f"\n[선택 교육 데이터셋] 대상 {len(hit)}개 · 비교 교육 {len(others)}개 {others[:8]}" + ('' if others else ' (비교 교육 없음 — 대상 교육 안에서만 분석)'))
+    t = dict(label=label, query=o.query, purpose=o.purpose, ids=hit['교육ID'].tolist(), scope=ins.get('scope', 'ALL'), compare_ids=others,
              survey_ids=[i for i in hit['교육ID'] if i not in nos], no_survey_ids=nos,
              series=sers, years=sorted(hit['yr'].unique().tolist()),
              similar_keywords=[k.strip() for k in o.similar.split(',') if k.strip()])

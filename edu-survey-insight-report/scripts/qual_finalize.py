@@ -32,6 +32,7 @@ def main():
     o = ap.parse_args()
     cb = jload(o.codebook); codes = [c['code'] for c in cb['codes']]; lab = {c['code']: c['label'] for c in cb['codes']}
     auto = jload(os.path.join(o.work, 'qual_auto.json'))
+    OTHER = scope_words(jload(os.path.join(o.work, 'inspect.json')).get('scope', 'ALL'))['other']
     ov = {k: v for k, v in jload(os.path.join(o.work, 'overrides.json')).items() if not k.startswith('_')}
     ids = {r['id'] for r in auto['rows']}
     bad = [k for k in ov if k not in ids]
@@ -59,12 +60,12 @@ def main():
                                                              by_year=dict(pd.Series([r['edu'][:4] for r in hit]).value_counts()) if hit else {})
     jdump(res, os.path.join(o.work, 'qual_final.json'))
     L = [f"# 주관식 주제 빈도 (overrides {len(ov)}건 반영)"]
-    for name, tb in [('대상 교육', res['target']), ('그 외 교육', res['other'])]:
+    for name, tb in [('대상 교육', res['target']), (OTHER, res['other'])]:
         L += ['', f"## {name}: 원문 {tb['base_rows']}행 · 응답자 {tb['base_resp']}명 · 교육 {tb['base_edus']}개"]
         for c, v in sorted(tb['themes'].items(), key=lambda x: -x[1]['resp']):
             L.append(f"- {lab[c]} ({c}): 응답자 {v['resp']}명 ({v['pct']}%), 언급 {v['mentions']}, 교육 {v['edus']} — 예: {', '.join(v['ids'][:4])}")
-    L += ['', '## 묶음(cluster)'] + [f"- {k}: 대상 {v['target']} / 그 외 {v['other']}" for k, v in res['clusters'].items()]
-    L += ['', f"일반 인사·내용 없음(코드 없음): 대상 {sum(r['generic'] for r in T)}행, 그 외 {sum(r['generic'] for r in O)}행",
+    L += ['', '## 묶음(cluster)'] + [f"- {k}: 대상 {v['target']} / {OTHER} {v['other']}" for k, v in res['clusters'].items()]
+    L += ['', f"일반 인사·내용 없음(코드 없음): 대상 {sum(r['generic'] for r in T)}행, {OTHER} {sum(r['generic'] for r in O)}행",
           f"검토 기록이 없는 대상 행: {sum(1 for r in T if not r['reviewed'])} (대상 행은 모두 확인하고, 자동 코드가 맞으면 note만 남겨도 됨)"]
     open(os.path.join(o.work, 'qual_summary.md'), 'w', encoding='utf-8').write('\n'.join(L))
     print('\n'.join(L[:40]))

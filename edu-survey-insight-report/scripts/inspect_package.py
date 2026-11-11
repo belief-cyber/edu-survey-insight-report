@@ -40,7 +40,11 @@ def main():
         checks.append((fn, 'OK' if h == info.get('sha256') else 'SHA_MISMATCH'))
     D = load(d, a_.split_modes.split(','))
     e, s, a, q = D['e'], D['s'], D['a'], D['q']
+    scope = D['scope']
     notes = []
+    if scope == 'SELECTED':
+        notes.append(dict(kind='export_scope', ids=e['교육ID'].tolist(),
+                          text=f"선택 교육 데이터셋: 담당자가 고른 교육 {len(e)}개만 포함 — 전체 교육 기준 분석(전체 교육 정량 탐색 장)은 만들지 않고 선택한 교육 안에서만 비교"))
     nos = e[e['설문응답수'].fillna(0) == 0]
     if len(nos): notes.append(dict(kind='survey_missing', ids=nos['교육ID'].tolist(), text='설문 응답 0건(누락/제외) 교육'))
     mism = e[e['연도'].astype(str) != e['yr']]
@@ -61,9 +65,11 @@ def main():
                                     years=('yr', lambda x: ','.join(sorted(set(x)))), resp=('설문응답수', 'sum')).reset_index()
     res = dict(pkg_dir=os.path.abspath(d), manifest=dict((k, man.get(k)) for k in ['package_version', 'export_id', 'dataset_version_id', 'analysis_run_id', 'qualitative_run_id', 'created_at', 'counts', 'validation']),
                sha_checks=checks, notes=notes, series=ser.to_dict('records'),
+               scope=scope, selected_ids=D['selected'] or e['교육ID'].tolist() if scope == 'SELECTED' else [],
                split_modes=a_.split_modes.split(','))
     jdump(res, os.path.join(a_.work, 'inspect.json'))
-    print('패키지:', man.get('package_version'), '| 데이터:', man.get('dataset_version_id'))
+    print('패키지:', man.get('package_version'), '| 데이터:', man.get('dataset_version_id'),
+          '| 범위:', '선택 교육 ' + str(len(e)) + '개 (전체 교육 장 생략)' if scope == 'SELECTED' else '전체 교육')
     print('SHA 검사:', ', '.join(f'{f}={c}' for f, c in checks))
     print('교육', len(e), '| 응답', len(s), '| 문항응답', len(a), '| 주관식', len(q))
     for n in notes: print('-', n['text'], (n['ids'][:6] if n['ids'] else ''))

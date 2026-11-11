@@ -15,7 +15,7 @@
 | doc_title, header_sub, title, subtitle, purpose | 머리말. purpose = 사용자가 준 분석 목적 |
 | summary.question / scope / rows[{k, items[{text, ev}]}] | 핵심 답변. k는 보통 유지·강화 / 우선 개선 / 검토·탐색 |
 | data_lead, data_notes[{badge: warn/fact/fix, title, text, ev}] | 데이터 특성. 스켈레톤이 자동 작성 → 다듬기 |
-| explorer_interpretation{scope, items[]} | 전체 교육 탐색 결과 해석(교란 요인, 천장효과 등) |
+| explorer_interpretation{scope, items[]} | 전체 교육 탐색 결과 해석(교란 요인, 천장효과 등). **선택 교육 데이터셋에는 쓰지 않는다**(전체 교육 장이 없음) |
 | difficulty_warning | 난이도 선택 시 경고 문구 |
 | bipolar_note | (선택) 표준 설문 v2 난이도(양극 척도) 선택 시 안내 문구. 비우면 기본 문구 |
 | target_lead | 대상 교육 개요 + 교육 간 차이 검정 결과 |
@@ -24,7 +24,7 @@
 | target_cards{교육ID: [특징]} | 교육별 특징 카드(이 교육에서만 나타난 것) |
 | anomalies[{title, text, ev}] | 응답 패턴 이상 |
 | compare_note | 비교군 구성 설명 |
-| insights[{title, tag, scope, obs, quant, qual, interp, implication, ev}] | 관찰→정량→정성→해석→시사점. tag: 대상 특화 / 전체 공통 / 공통 vs 특화 / 근거 일치 / 해석 제한 |
+| insights[{title, tag, scope, obs, quant, qual, interp, implication, ev}] | 관찰→정량→정성→해석→시사점. tag: 대상 특화 / 전체 공통(선택 교육 데이터셋은 선택 교육 공통) / 공통 vs 특화 / 근거 일치 / 해석 제한 |
 | dt_scope | 디자인 씽킹 분석 범위 |
 | issue{user, need, goal, problem, action: {text, kind: fact/ai/mixed, ev}} | 이슈 구조화 |
 | persona_note, personas[{name, desc, tags, ev}] | 유형. 근거 부족하면 personas=[]와 한계 설명 |
@@ -37,6 +37,7 @@
 
 ## 작성 원칙
 1. **전체 교육 vs 대상 교육을 섞지 않는다.** 전체 교육의 반복 요구는 "전체 공통", 대상에서만 나온 것은 "대상 특화"로 태그.
+   선택 교육 데이터셋(`export_scope`=SELECTED)에서는 "전체 교육"이라는 말을 쓰지 않는다. 선택한 교육들에 반복되는 요구는 "선택 교육 공통", 비교 대상은 "비교 교육"으로 쓰고, summary.scope에 선택 교육 데이터셋임을 밝힌다.
 2. **신분으로 페르소나를 만들지 않는다.** 신분별 정량 차이와 주관식 근거가 함께 있을 때만 유형으로 쓰고, 아니면 "상황·요구 기준 잠정 유형"으로 쓰거나 비운다.
 3. **인과를 단정하지 않는다.** "~때문이다"는 문제 재정의의 because에서도 *분석으로 확인된 이유*만.
 4. **HMW는 열린 질문.** 나쁜 예: "복사-수정 실습지를 도입해 타자 부담을 없앨 수 있을까?"(해법 전제). 좋은 예: "60분 안에서 다음 일정에 쫓기지 않으면서 충분히 배웠다고 느끼게 할 수 있을까?"
