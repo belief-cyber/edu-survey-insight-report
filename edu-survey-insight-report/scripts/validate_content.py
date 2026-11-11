@@ -51,7 +51,10 @@ def main():
     s = read_csv(ins['pkg_dir'], 'survey_responses.csv'); e = read_csv(ins['pkg_dir'], 'educations.csv')
     qtext = {r['id']: r['t'] for r in QF['rows']}; rids = set(s['비식별응답ID']); eids = set(e['교육ID']); codes = {c['code'] for c in cb['codes']}
     err, warn = [], []
+    selected = QR.get('scope') == 'SELECTED'
     for k, t in REQ.items():
+        if k == 'explorer_interpretation' and selected:
+            continue   # 선택 교육 데이터셋: 전체 교육 탐색 장이 없으므로 해석도 필요 없음
         if k not in C: err.append(f'필수 항목 없음: {k}')
         elif not isinstance(C[k], t): err.append(f'{k} 형식 오류({t.__name__} 필요)')
     for sec, fs in FIELDS.items():
@@ -61,6 +64,10 @@ def main():
     if C.get('summary'):
         for f in ['question', 'scope', 'rows']:
             if f not in C['summary']: err.append(f'summary.{f} 없음')
+    if selected:
+        for p, v in walk(C):
+            if isinstance(v, str) and re.search(r'전체\s*교육(?!\s*데이터셋)|전체 공통', v) and not p.startswith('.limitations'):
+                warn.append(f'{p}: 선택 교육 데이터셋인데 "전체 교육/전체 공통" 표현이 있음 — "선택 교육" 기준으로 고치세요')
     for p, v in walk(C):
         if isinstance(v, str) and re.search(r'TODO|TBD|채워 넣|＿＿', v): err.append(f'미작성 표시 남음: {p}')
         if re.search(r'\.(score|priority_score|점수)$', p): err.append(f'수치 우선순위 필드 금지: {p}')

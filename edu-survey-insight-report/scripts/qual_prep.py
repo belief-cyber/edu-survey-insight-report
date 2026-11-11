@@ -45,7 +45,7 @@ def main():
     if masklog:
         L += ['', '## 실명 마스킹 기록(오탐 여부 확인)'] + [f"- {m['id']}: {m['after']}" for m in masklog]
     for grp in ['TARGET', 'OTHER']:
-        L += ['', f"## {'대상 교육' if grp == 'TARGET' else '그 외 교육'}"]
+        L += ['', f"## {'대상 교육' if grp == 'TARGET' else scope_words(D['scope'])['other']}"]
         cur = None
         for r in sorted([x for x in rows if x['g'] == grp], key=lambda x: (x['edu'], x['id'])):
             if r['edu'] != cur:

@@ -218,7 +218,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
   <div class="pills" id="pills"></div>
 </header>
 <nav class="toc" id="toc">
-  <a href="#s0">요약</a><a href="#s1">1 데이터·범위</a><a href="#s2">2 전체 교육 탐색</a><a href="#s2q">2-Q 주관식 탐색</a><a href="#s3">3 대상 교육 심층</a><a href="#s4">4 통합 인사이트</a><a href="#s5">5 이슈·유형·공감맵</a><a href="#s6">6 Pain Point·문제정의</a><a href="#s7">7 HMW</a><a href="#s8">8 개선 권고</a><a href="#s9">9 한계·검증</a>
+  <a href="#s0">요약</a><a href="#s1">1 데이터·범위</a><a href="#s2" id="tocS2">2 전체 교육 탐색</a><a href="#s2q" id="tocS2q">2-Q 주관식 탐색</a><a href="#s3">3 대상 교육 심층</a><a href="#s4">4 통합 인사이트</a><a href="#s5">5 이슈·유형·공감맵</a><a href="#s6">6 Pain Point·문제정의</a><a href="#s7">7 HMW</a><a href="#s8">8 개선 권고</a><a href="#s9">9 한계·검증</a>
   <button class="themebtn" id="themebtn" type="button">화면 테마</button><button class="printbtn" id="printbtn" type="button" title="접힌 내용을 모두 펼치고 필터·검색창을 뺀 A4 인쇄본으로 저장합니다">PDF 인쇄(A4)</button>
 </nav>
 <main>
@@ -365,7 +365,7 @@ tr.tgt td:first-child{font-weight:700;color:var(--s2)}
     <div class="card"><h4>데이터 버전</h4><table class="static verify" id="verMeta"></table></div>
   </div>
   <h3>수치 검증 <b class="b b-fact">확인</b></h3>
-  <div class="card"><p class="small" style="margin-bottom:6px">페이지를 열 때마다 내장된 원자료로 다시 계산한 값과 패키지 검증 집계표(<code>quantitative_summary.csv</code> 전체교육 행)를 비교합니다.</p><table class="static verify" id="verTbl"></table></div>
+  <div class="card"><p class="small" style="margin-bottom:6px">페이지를 열 때마다 내장된 원자료로 다시 계산한 값과 패키지 검증 집계표(<code>quantitative_summary.csv</code> <span id="verLevel">전체교육</span> 행)를 비교합니다.</p><table class="static verify" id="verTbl"></table></div>
 </section>
 </main>
 <footer id="foot"></footer>
@@ -417,10 +417,19 @@ function evBtns(ev){if(!ev)return '';let h='';
 
 // ---------- header & static text
 const MT=DATA.meta;
+// 내보내기 범위: ALL(전체 교육) / SELECTED(담당자가 고른 교육만 — 전체 교육 탐색 장 생략)
+const SC=DATA.scope||{mode:'ALL',words:{all:'전체 교육',other:'그 외 교육',common:'전체 공통',base:'전체 교육'},officialLevel:'전체교육'};
+const SELECTED=SC.mode==='SELECTED';
+if(SELECTED){
+  $('#s2').style.display='none';$('#s2').dataset.skip='1';$('#tocS2').remove();
+  $('#tocS2q').textContent='2 주관식 탐색';const qn=document.querySelector('#s2q .num');if(qn)qn.textContent='2';
+}
+$('#qScope button[data-v=OTHER]').textContent=SC.words.other;
+$('#verLevel').textContent=SC.officialLevel||'전체교육';
 $('#hSub').textContent=C.header_sub||'학술정보교육 설문 정량·정성 통합분석';
 $('#hTitle').innerHTML=md(C.title)+(C.subtitle?`<br><span style="font-weight:400;font-size:18px">${md(C.subtitle)}</span>`:'');
 $('#hPurpose').innerHTML=md(C.purpose||'');
-$('#pills').innerHTML=[`데이터 ${MT.dataset}`,`정량 ${MT.quant}`,`정성 ${MT.qual}`,`교육 ${MT.counts.educations} · 설문 교육 ${MT.counts.survey_educations}`,`응답 ${MT.counts.survey_responses.toLocaleString()}건`].map(t=>`<span class="pill">${esc(t)}</span>`).join('');
+$('#pills').innerHTML=[`데이터 ${MT.dataset}`,`정량 ${MT.quant}`,`정성 ${MT.qual}`,`교육 ${MT.counts.educations} · 설문 교육 ${MT.counts.survey_educations}`,`응답 ${MT.counts.survey_responses.toLocaleString()}건`].concat(SELECTED?[`선택 교육 데이터셋 · ${SC.n}개 교육`]:[]).map(t=>`<span class="pill">${esc(t)}</span>`).join('');
 document.title=C.doc_title||'학술정보교육 통합분석 보고서';
 $('#sumLead').innerHTML=`“${md(C.summary.question)}” <b class="b b-ai">AI 해석</b> <b class="b b-fix">범위: ${esc(C.summary.scope)}</b>`;
 $('#sumRows').innerHTML=C.summary.rows.map(r=>`<div class="row"><div class="k">${esc(r.k)}</div><div class="v"><ul>${r.items.map(it=>`<li>${md(it.text)} ${evBtns(it.ev)}</li>`).join('')}</ul></div></div>`).join('');
@@ -434,7 +443,7 @@ $('#qScope button[data-v=TARGET]').textContent=DATA.target.label;
 // ---------- data section (auto)
 const yrs=[...new Set(E.map(e=>e.y))].sort();
 $('#dataKpis').innerHTML=[
- ['교육',MT.counts.educations+'개','설문 있는 교육 '+MT.counts.survey_educations+'개'],
+ [SELECTED?'선택 교육':'교육',MT.counts.educations+'개',(SELECTED?'전체 교육 아님 · ':'')+'설문 있는 교육 '+MT.counts.survey_educations+'개'],
  ['설문 응답',MT.counts.survey_responses.toLocaleString()+'건',yrs.map(y=>y+' '+R.filter(r=>r.ed.y===y).length).join(' · ')],
  ['추정 인원',new Set(R.map(r=>r.p)).size.toLocaleString()+'명','분할 운영 단위 동일인 통합'],
  ['문항 응답',MT.counts.question_answers.toLocaleString()+'행',''],
@@ -527,7 +536,7 @@ $('#qYear').onchange=e=>{QS.y=e.target.value;renderQual();};$('#qStat').onchange
 function renderQual(){
   const base=Q.filter(q=>q.g===QS.scope&&(!QS.y||(E[q.e]&&E[q.e].y===QS.y))&&(!QS.st||q.st===QS.st));
   const resp=new Set(base.map(q=>q.rid)),eds=new Set(base.map(q=>q.e));
-  $('#qScopeLine').innerHTML=`<b>현재 범위</b> ${QS.scope==='TARGET'?esc(DATA.target.label):'그 외 교육'}${QS.y?' · '+QS.y:''}${QS.st?' · '+esc(QS.st):''} · 원문 ${base.length}행 · 고유 응답자 ${resp.size}명 · ${eds.size}개 교육`;
+  $('#qScopeLine').innerHTML=`<b>현재 범위</b> ${QS.scope==='TARGET'?esc(DATA.target.label):esc(SC.words.other)}${QS.y?' · '+QS.y:''}${QS.st?' · '+esc(QS.st):''} · 원문 ${base.length}행 · 고유 응답자 ${resp.size}명 · ${eds.size}개 교육`;
   const cnt={};base.forEach(q=>q.c.forEach(c=>{(cnt[c]=cnt[c]||{r:new Set(),m:0,e:new Set()});cnt[c].r.add(q.rid);cnt[c].m++;cnt[c].e.add(q.e);}));
   const items=Object.entries(cnt).map(([c,o])=>({code:c,label:TL[c]||c,v:o.r.size,color:TC(c),tip:`<b>${esc(TL[c]||c)}</b><br>고유 응답자 ${o.r.size}명 (${(o.r.size/Math.max(1,resp.size)*100).toFixed(1)}%)<br>언급 ${o.m}건 · 관련 교육 ${o.e.size}개`})).sort((a,b)=>b.v-a.v||a.label.localeCompare(b.label,'ko'));
   const mx=Math.max(1,...items.map(i=>i.v));
@@ -639,13 +648,14 @@ function bindEv(root){
   root.querySelectorAll('.ev[data-q]').forEach(b=>b.onclick=()=>{const ids=b.dataset.q.split(',');const qs=ids.map(i=>QBY[i]).filter(Boolean);openDrawer('원문 근거 '+qs.length+'건','주관식 원문(비식별, 실명 마스킹)',qs.map(quoteHTML).join('')+(qs.length<ids.length?'<p class="muted">일부 ID를 찾지 못했습니다.</p>':''));});
   root.querySelectorAll('.ev[data-r]').forEach(b=>b.onclick=()=>openResp(b.dataset.r.split(',')));
   root.querySelectorAll('.ev[data-edu]').forEach(b=>b.onclick=()=>openEdu(+b.dataset.edu,0));
-  root.querySelectorAll('.ev[data-theme]').forEach(b=>b.onclick=()=>{const c=b.dataset.theme,sc=b.dataset.scope;const qs=Q.filter(q=>q.g===sc&&q.c.includes(c));openDrawer((TL[c]||c)+' · '+new Set(qs.map(q=>q.rid)).size+'명',(sc==='TARGET'?DATA.target.label:'그 외 교육')+' 주관식 주제 원문',qs.map(quoteHTML).join(''));});
+  root.querySelectorAll('.ev[data-theme]').forEach(b=>b.onclick=()=>{const c=b.dataset.theme,sc=b.dataset.scope;const qs=Q.filter(q=>q.g===sc&&q.c.includes(c));openDrawer((TL[c]||c)+' · '+new Set(qs.map(q=>q.rid)).size+'명',(sc==='TARGET'?DATA.target.label:SC.words.other)+' 주관식 주제 원문',qs.map(quoteHTML).join(''));});
 }
 function renderVerify(){
   $('#verMeta').innerHTML='<tbody>'+[['패키지',MT.package],['Export ID',MT.export],['데이터 버전',MT.dataset],['정량분석 실행',MT.quant],['정성분석 실행',MT.qual],['패키지 생성',MT.created],['manifest 검증',MT.validation],['정성 코딩',DATA.codingNote]].map(r=>`<tr><th>${r[0]}</th><td>${esc(r[1])}</td></tr>`).join('')+'</tbody>';
   $('#verTbl').innerHTML='<thead><tr><th>지표</th><th class="n">공식 n</th><th class="n">재계산 n</th><th class="n">공식 평균</th><th class="n">재계산</th><th class="n">공식 동일가중</th><th class="n">재계산</th><th>결과</th></tr></thead><tbody>'+DATA.official.map(o=>{const k=M.indexOf(o.metric);const a=agg(R,k,'row'),eq=eduEq(R,k);const ok=a.n===o.n&&Math.abs(a.mean-o.mean)<0.0006&&Math.abs(eq.m-o.eqw)<0.0006;return `<tr><td>${MS[o.metric]}</td><td class="n">${o.n}</td><td class="n">${a.n}</td><td class="n">${o.mean.toFixed(3)}</td><td class="n">${f3(a.mean)}</td><td class="n">${o.eqw.toFixed(3)}</td><td class="n">${f3(eq.m)}</td><td class="vres ${ok?'ok':''}" style="${ok?'':'color:var(--crit)'}">${ok?'일치':'불일치'}</td></tr>`}).join('')+'</tbody>';
 }
-const secs=$$('main section'),links=$$('#toc a');
+const secs=$$('main section').filter(x=>!x.dataset.skip),links=$$('#toc a');
+if(!Q.some(q=>q.g==='OTHER')){const ob=$('#qScope button[data-v=OTHER]');if(ob)ob.style.display='none';}
 addEventListener('scroll',()=>{let cur=secs[0].id;secs.forEach(s=>{if(s.getBoundingClientRect().top<120)cur=s.id;});links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur));},{passive:true});
 function renderAll(){renderExplorer();renderQual();renderTarget();renderTargetStatic();bindEv(document);}
 renderAll();renderVerify();

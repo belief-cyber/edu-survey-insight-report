@@ -27,19 +27,24 @@ def main():
     ins = jload(os.path.join(o.work, 'inspect.json')); tgt = jload(os.path.join(o.work, 'target.json'))
     D = load(ins['pkg_dir'], ins['split_modes']); e, s, a, q, qs = D['e'], D['s'], D['a'], D['q'], D['qs']
     T = set(tgt['survey_ids'])
-    e['cmp'] = cmp_labels(e, T, tgt['similar_keywords'], tgt['years'])
+    scope = D['scope']; W_ = scope_words(scope)
+    e['cmp'] = cmp_labels(e, T, tgt['similar_keywords'], tgt['years'], scope)
     a = a.merge(e[['교육ID', 'cmp']], on='교육ID', how='left')
     R = {}
     # 1. official reproduction
-    off = qs[qs['집계수준'] == '전체교육']
+    off = qs[qs['집계수준'].isin(OFFICIAL_LEVELS)]   # 전체교육(ALL) 또는 선택교육(SELECTED)
     chk = []
+    skipped = []
     for _, r in off.iterrows():
         m = r['표준분석항목ID']; d = integrated(a, m)
+        if pd.isna(r['평균']) or int(r['유효응답수'] or 0) == 0:
+            # 응답이 없는 지표(예: 선택 교육에 없는 표준 설문 v2 신규 문항) — 재현할 값이 없음
+            skipped.append(dict(metric=m, recalculated_n=int(len(d)))); continue
         st = agg_values(d); eq = edu_equal(d)
         ok = st['n'] == int(r['유효응답수']) and abs(st['mean'] - r['평균']) < 6e-4 and abs(eq - r['교육동일가중평균']) < 6e-4
         chk.append(dict(metric=m, official_n=int(r['유효응답수']), n=st['n'], official_mean=float(r['평균']), mean=st['mean'],
                         official_eqw=float(r['교육동일가중평균']), eqw=eq, edus=int(d['교육ID'].nunique()), ok=bool(ok)))
-    R['official_check'] = chk
+    R['official_check'] = chk; R['official_skipped'] = skipped; R['scope'] = scope; R['official_level'] = off['집계수준'].iloc[0] if len(off) else None
     # 2. overall & dims
     R['overall'] = {m: metric_block(a, m)['전체'] for m in METRICS}
     MET = [m for m in METRICS if len(integrated(a, m))]   # metrics present in this package
@@ -101,7 +106,7 @@ def main():
         pv = profile_values(a, item)
         if pv.empty: continue
         out = {}
-        for scope, ids in (('대상', T), ('전체', None)):
+        for scope_, ids in (('대상', T), (W_['base'], None)):
             sub = pv if ids is None else pv[pv['비식별응답ID'].isin(set(ta['비식별응답ID']))]
             if sub.empty: continue
             cats = {}
@@ -113,11 +118,11 @@ def main():
                 d = integrated(a[a['비식별응답ID'].isin(rid)], BIPOLAR)
                 if len(d): row[BIPOLAR] = bipolar(d)
                 cats[str(cat)] = row
-            out[scope] = cats
+            out[scope_] = cats
         prof[item] = dict(label=ko, scopes=out)
     R['profile'] = prof
     # target official per-item reproduction
-    offe = qs[(qs['집계수준'] != '전체교육') & qs['교육ID'].isin(T)]
+    offe = qs[(~qs['집계수준'].isin(OFFICIAL_LEVELS)) & qs['교육ID'].isin(T)]
     mism = []
     for _, r in offe.iterrows():
         g = tv[(tv['교육ID'] == r['교육ID']) & (tv['원문항'] == r['원문항']) & (tv['표준분석항목ID'] == r['표준분석항목ID'])]
@@ -174,8 +179,11 @@ def main():
     R['notes'] = ins['notes']; R['target'] = tgt
     jdump(R, os.path.join(o.work, 'quant_results.json'))
     # ---- markdown summary for reading
-    L = [f"# 정량 결과 요약 · 대상: {tgt['label']}", '', '## 공식 집계 재현']
+    L = [f"# 정량 결과 요약 · 대상: {tgt['label']}", '',
+         f"범위: {'선택 교육 데이터셋 — 교육 ' + str(len(e)) + '개만 포함(전체 교육 기준 수치 아님). 아래 연도별·비교군 수치는 선택 교육 안의 값' if scope == 'SELECTED' else '전체 교육 데이터셋'}",
+         '', f"## 공식 집계 재현 ({R['official_level'] or '상위 집계 행 없음'} 기준)"]
     for c in chk: L.append(f"- {METRIC_KO.get(c['metric'], c['metric'])}: n {c['n']}/{c['official_n']}, 평균 {c['mean']:.3f}/{c['official_mean']:.3f}, 동일가중 {c['eqw']:.3f}/{c['official_eqw']:.3f} → {'일치' if c['ok'] else '불일치'}")
+    if skipped: L.append(f"- 응답 0건이라 재현 대상에서 뺀 지표: {', '.join(METRIC_KO.get(x['metric'], x['metric']) + ('(재계산 ' + str(x['recalculated_n']) + '건 — 확인 필요)' if x['recalculated_n'] else '') for x in skipped)}")
     L += ['', f"대상 원문항 재현: {R['target_item_check']['rows']}행, 불일치 {len(mism)}건", '', '## 연도별 (설문 행 | 추정 인원)']
     for m in MET:
         b = R['by']['연도'][m]
@@ -200,7 +208,7 @@ def main():
           f"- v1·v2가 섞인 지표(추세는 조건부·참고만): {[METRIC_KO[m] for m in vm['mixed_metrics']] or '없음'}"]
     if R['bipolar']:
         b = R['bipolar']
-        L.append(f"- 난이도(양극) 전체 적절 {b['overall']['fit']} · 쉬움 {b['overall']['easy']} · 어려움 {b['overall']['hard']} (n={b['overall']['n']}) | 대상 적절 {b['target']['fit']} · 쉬움 {b['target']['easy']} · 어려움 {b['target']['hard']} (n={b['target']['n']}, {b['target']['direction']})")
+        L.append(f"- 난이도(양극) {W_['base']} 적절 {b['overall']['fit']} · 쉬움 {b['overall']['easy']} · 어려움 {b['overall']['hard']} (n={b['overall']['n']}) | 대상 적절 {b['target']['fit']} · 쉬움 {b['target']['easy']} · 어려움 {b['target']['hard']} (n={b['target']['n']}, {b['target']['direction']})")
         for k, x in b['by_edu'].items(): L.append(f"  - {k}: 적절 {x['fit']} · 쉬움 {x['easy']} · 어려움 {x['hard']} (n={x['n']})")
     for item, pr in R['profile'].items():
         for scope, cats in pr['scopes'].items():
@@ -209,7 +217,7 @@ def main():
     for b in bim:
         if b['flag']: L.append(f"- [양극단] {METRIC_KO[b['metric']]} {b['yr']}: 1점 {b['p1']} / 2점 {b['p2']}, 전반 5점 중 1점 {b['p1_among_overall5']}")
     for x in single:
-        if x['target_hits']: L.append(f"- [단독 1점] {METRIC_KO[x['metric']]}: 대상 {len(x['target_hits'])}/{x['target_n']} {x['target_hits']} vs 그 외 {x['other_hits']}/{x['other_n']}")
+        if x['target_hits']: L.append(f"- [단독 1점] {METRIC_KO[x['metric']]}: 대상 {len(x['target_hits'])}/{x['target_n']} {x['target_hits']} vs {W_['other']} {x['other_hits']}/{x['other_n']}")
     for x in lowc:
         if x['target']: L.append(f"- [저점 응답] {x['rid']} 저점 {x['low_items']}개, 주관식: {x['texts']}")
     L += ['', f"## 분할 단위: {R['split_units']}", f"## 주관식 범위: {R['qual_coverage']}"]

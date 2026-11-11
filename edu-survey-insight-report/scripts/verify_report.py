@@ -34,36 +34,46 @@ async def run(o):
         check('page_loaded', await pg.evaluate('window.__REPORT_OK__===true'))
         v = await pg.eval_on_selector_all('#verTbl td.vres', 'e=>e.map(x=>x.textContent)')
         check('official_match', v and all(x == '일치' for x in v), f'{v}')
-        k0 = await pg.inner_text('#kpis'); n_off = [c['official_n'] for c in QR['official_check'] if c['metric'] == 'overall_satisfaction'][0]
-        check('explorer_default_n', f'{n_off:,}건' in k0, k0.replace('\n', ' ')[:160])
-        await pg.click('#fBasis button[data-v=person]'); k1 = await pg.inner_text('#kpis')
-        check('basis_person_changes_kpi', k1 != k0 or QR['split_units']['units'] == 0)
-        await pg.click('#fReset')
-        years = await pg.eval_on_selector_all('#fYear option', 'e=>e.map(x=>x.value).filter(Boolean)')
-        if years:
-            await pg.select_option('#fYear', years[-1]); sc = await pg.inner_text('#scopeLine')
-            check('year_filter_scope', years[-1] in sc, sc[:120])
-        diff_opts = await pg.eval_on_selector_all('#fMetric option', "os=>os.filter(o=>/해석 제한|양극 척도/.test(o.textContent)).map(o=>o.value)")
-        for v in diff_opts:
-            await pg.select_option('#fMetric', v); check(f'difficulty_warning[{v}]', len((await pg.inner_text('#diffWarn')).strip()) > 0)
-        if not diff_opts: check('difficulty_warning(난이도 지표 없음)', True)
-        await pg.click('#fReset')
-        await pg.select_option('#fAxis', 'cmp'); bars = await pg.eval_on_selector_all('#barChart g.bar', 'e=>e.length')
-        check('cmp_axis_bars', bars >= 2, f'{bars}')
-        await pg.click('#fReset')
-        rows = await pg.eval_on_selector_all('#eduTbl tbody tr', 'e=>e.length')
-        n_edus = [c['edus'] for c in QR['official_check'] if c['metric'] == 'overall_satisfaction'][0]
-        check('edu_table_rows', rows == n_edus, f'{rows} vs {n_edus}')
-        await pg.click('#eduTbl th[data-k=mean]'); await pg.click('#eduTbl tbody tr:first-child'); await pg.wait_for_timeout(200)
-        check('edu_drawer', await pg.evaluate("document.querySelector('#drawer').classList.contains('open')"))
-        await pg.click('#dClose')
+        selected = QR.get('scope') == 'SELECTED'
+        if selected:
+            # 선택 교육 데이터셋: 전체 교육 탐색 장(s2)과 목차 링크가 없어야 한다
+            hidden = await pg.evaluate("getComputedStyle(document.querySelector('#s2')).display==='none' && !document.querySelector('#toc a[href=\"#s2\"]')")
+            check('selected_scope_hides_explorer', hidden)
+            check('selected_scope_pill', '선택 교육 데이터셋' in (await pg.inner_text('#pills')))
+        else:
+            k0 = await pg.inner_text('#kpis'); n_off = [c['official_n'] for c in QR['official_check'] if c['metric'] == 'overall_satisfaction'][0]
+            check('explorer_default_n', f'{n_off:,}건' in k0, k0.replace('\n', ' ')[:160])
+            await pg.click('#fBasis button[data-v=person]'); k1 = await pg.inner_text('#kpis')
+            check('basis_person_changes_kpi', k1 != k0 or QR['split_units']['units'] == 0)
+            await pg.click('#fReset')
+            years = await pg.eval_on_selector_all('#fYear option', 'e=>e.map(x=>x.value).filter(Boolean)')
+            if years:
+                await pg.select_option('#fYear', years[-1]); sc = await pg.inner_text('#scopeLine')
+                check('year_filter_scope', years[-1] in sc, sc[:120])
+            diff_opts = await pg.eval_on_selector_all('#fMetric option', "os=>os.filter(o=>/해석 제한|양극 척도/.test(o.textContent)).map(o=>o.value)")
+            for v in diff_opts:
+                await pg.select_option('#fMetric', v); check(f'difficulty_warning[{v}]', len((await pg.inner_text('#diffWarn')).strip()) > 0)
+            if not diff_opts: check('difficulty_warning(난이도 지표 없음)', True)
+            await pg.click('#fReset')
+            await pg.select_option('#fAxis', 'cmp'); bars = await pg.eval_on_selector_all('#barChart g.bar', 'e=>e.length')
+            check('cmp_axis_bars', bars >= 2, f'{bars}')
+            await pg.click('#fReset')
+            rows = await pg.eval_on_selector_all('#eduTbl tbody tr', 'e=>e.length')
+            n_edus = [c['edus'] for c in QR['official_check'] if c['metric'] == 'overall_satisfaction'][0]
+            check('edu_table_rows', rows == n_edus, f'{rows} vs {n_edus}')
+            await pg.click('#eduTbl th[data-k=mean]'); await pg.click('#eduTbl tbody tr:first-child'); await pg.wait_for_timeout(200)
+            check('edu_drawer', await pg.evaluate("document.querySelector('#drawer').classList.contains('open')"))
+            await pg.click('#dClose')
         ql = await pg.inner_text('#qScopeLine')
         check('qual_target_rows', f"원문 {QF['target']['base_rows']}행" in ql, ql[:120])
         if QF['target']['themes']:
             await pg.click('#themeChart g.bar >> nth=0'); qc = await pg.inner_text('#quoteCount')
             check('theme_click_quotes', int(qc.replace('행', '')) > 0, qc)
-        await pg.click('#qScope button[data-v=OTHER]'); ql2 = await pg.inner_text('#qScopeLine')
-        check('qual_other_rows', f"원문 {QF['other']['base_rows']}행" in ql2, ql2[:120])
+        if await pg.is_visible('#qScope button[data-v=OTHER]'):
+            await pg.click('#qScope button[data-v=OTHER]'); ql2 = await pg.inner_text('#qScopeLine')
+            check('qual_other_rows', f"원문 {QF['other']['base_rows']}행" in ql2, ql2[:120])
+        else:
+            check('qual_other_rows(비교 교육 주관식 없음)', QF['other']['base_rows'] == 0)
         cells = await pg.eval_on_selector_all('#tHeat g.cell', 'e=>e.length')
         check('target_heat_cells', cells > 0, f'{cells}')
         await pg.click('#tHeat g.cell >> nth=0'); await pg.wait_for_timeout(150)
@@ -83,7 +93,7 @@ async def run(o):
         await pg.click('#recOpen')
         for sid in ['s0', 's2', 's3', 's4', 's5', 's8']:
             el = await pg.query_selector('#' + sid)
-            if el: await el.screenshot(path=os.path.join(o.shots, f'{sid}.png'))
+            if el and await el.is_visible(): await el.screenshot(path=os.path.join(o.shots, f'{sid}.png'))
         # --- 인쇄 준비 검사: 인쇄 버튼, 접힌 내용 펼침, 필터·검색창 숨김, 인쇄 후 복원 ---
         check('print_button', await pg.query_selector('#printbtn') is not None)
         await pg.evaluate("()=>{document.querySelectorAll('details').forEach(d=>d.open=false)}")

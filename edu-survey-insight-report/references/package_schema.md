@@ -19,7 +19,7 @@ educations.csv ──교육ID──┬─ participation.csv (1:1)
 
 | 파일 | 주요 열 | 쓰임 |
 |---|---|---|
-| `manifest.json` | package_version, export_id, dataset_version_id, analysis_run_id, qualitative_run_id, counts, files.sha256, validation, privacy | 데이터 버전 표기, 무결성 확인 |
+| `manifest.json` | package_version, export_id, dataset_version_id, analysis_run_id, qualitative_run_id, **export_scope(ALL/SELECTED), selected_education_ids, scope_note**(2026-11-11~), counts, files.sha256, validation, privacy | 데이터 버전 표기, 무결성 확인, **내보내기 범위 판단** |
 | `analysis_rules.md` | 패키지 측 계산 규칙 | 매번 읽고 `references/analysis_rules.md`와 다른 점이 있으면 패키지 규칙을 우선 |
 | `educations.csv` | 교육ID, 교육명, 연도, 학기, 교육유형, 운영방식, 교육시작일, 교육종료일, 교육대상, 신청자수_기준표, 참여자수_기준표, 설문응답수_기준표, 참여자자료상태, 설문자료상태 | 교육 메타. **교육ID 앞 4자리 = 학년도**(연도 열과 다를 수 있음) |
 | `participation.csv` | 교육ID, 참여자레코드수, 확인된이수자수, 설문응답수, 응답률계산가능(Y/N), 응답률분모, 응답률 | 응답률은 `응답률계산가능=Y`일 때만 사용 |
@@ -27,7 +27,7 @@ educations.csv ──교육ID──┬─ participation.csv (1:1)
 | `question_answers.csv` | 문항응답ID, 비식별응답ID, 교육ID, 원본문항ID, 원문항, 표준분석항목ID, 지표변형, 원본응답값, 수치값, 비교가능성(A/B/C/D), 분석포함(Y/N), 제외사유, 변환상태 | 정량 원자료 |
 | `qualitative.csv` | 비식별주관식ID, 비식별응답ID, 교육ID, 원문항, 비식별원문, 주제, 의견유형, 코딩상태(PROPOSED/APPROVED/REJECTED), 분석제외(Y/N), 제외사유 | 주관식. `분석제외=N`만 분석 |
 | `question_dictionary.csv` | 표준분석항목ID, 표준한글명, 원래질문문구, 원본문항ID, 교육ID, 원래응답척도, 비교집계가능성 | 문항 의미·척도 확인 |
-| `quantitative_summary.csv` | 집계수준(전체교육/교육·원문항), 교육ID, 표준분석항목ID, 원문항, 유효응답수, 평균, 표준편차, 교육수, 교육동일가중평균, 응답분포 | **검증 기준표** — 재계산 결과가 반드시 일치해야 함 |
+| `quantitative_summary.csv` | 집계수준(전체교육 또는 선택교육 / 교육·원문항), 교육ID, 표준분석항목ID, 원문항, 유효응답수, 평균, 표준편차, 교육수, 교육동일가중평균, 응답분포 | **검증 기준표** — 재계산 결과가 반드시 일치해야 함 |
 | `education_groups.csv` | 교육군ID, 교육군명, 교육ID, 상태 | 승인된 교육군(있으면 대상 탐색에 참고) |
 | `survey_items.csv` (2026-11~, 선택) | 설문버전, 단계(사후/신청), 번호(Q1~Q13·P1·S1~SR2), 사용구분(공통/선택/모듈), 영역, 표준분석항목ID, 문항문구, 응답척도(AGREE5/LEVEL5/TEXT/CHOICE/ORDINAL5), 척도보기, 비교가능성, 기존연결(조건부/신규/단절/동일 기능), 기존연결설명, 일치패턴 | 표준 설문 v2 문항 은행. 원문항이 `일치패턴`(공백 제거·앞 번호 제거 후 정규식)과 맞으면 v2 응답 |
 | `improvement_history.csv` | 개선ID, 제목, 영역, 계획내용, 상태, 관련교육ID, 실행일 … | 비어 있으면 "개선 효과 추적 불가"로 명시 |
@@ -56,3 +56,9 @@ educations.csv ──교육ID──┬─ participation.csv (1:1)
 
 ## 비교가능성 등급
 A 직접 비교 · B 조건부 비교 · C 원문 보존(집계 불가) · D 교육 고유 문항(비교 불가). 정량 평균은 A·B만.
+
+## 내보내기 범위 (2026-11-11~)
+- `export_scope`=`ALL`(또는 키 없음): 활성 데이터의 모든 교육. 상위 집계 행은 `집계수준`=`전체교육`.
+- `export_scope`=`SELECTED`: 담당자가 데이터 허브에서 고른 교육만(`selected_education_ids`). 모든 CSV가 그 교육으로 잘려 있고 상위 집계 행은 `집계수준`=`선택교육`(선택한 교육만 합친 공식 집계). 파일 이름은 `education_analysis_selected<N>_*.zip`.
+- 선택 교육 데이터셋의 `education_groups.csv`는 선택한 교육만 남으므로 교육 묶음의 다른 교육이 빠져 있을 수 있다. `improvement_history.csv`는 선택한 교육과 연결된 이력만 담는다.
+- 선택한 교육에 응답이 없는 지표도 상위 집계 행이 `유효응답수`=0, `평균` 빈칸으로 들어올 수 있다. `quant.py`는 이 행을 재현 대상에서 뺀다.

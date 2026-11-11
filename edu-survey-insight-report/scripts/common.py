@@ -8,6 +8,9 @@ All analysis scripts import from here so that every run applies the same rules:
 - estimated person = within a split unit, same (신분|소속·전공 원문|인지경로) signature
   (only when at least 2 signature items are answered; standard survey v2 has no 소속·인지경로 in the
    post-survey, so v2 split responses stay one-row-one-respondent unless the package carries 응답자키)
+- export scope (manifest export_scope): ALL = every education (default, legacy packages), SELECTED = only the
+  educations the staff picked in the data hub. SELECTED packages have no whole-population baseline: the report drops
+  the "전체 교육 정량 탐색" chapter and compares the target with the other selected educations only.
 - difficulty items are distribution-only: difficulty_appropriateness (legacy, meaning unverified) and
   difficulty_level (standard survey v2, bipolar 1 매우 쉬웠다 ~ 3 적절했다 ~ 5 매우 어려웠다)
 """
@@ -48,6 +51,26 @@ OPTIONAL_FILES = ['survey_items.csv', 'education_groups.csv', 'improvement_histo
 REQUIRED_FILES = ['manifest.json', 'educations.csv', 'participation.csv', 'survey_responses.csv',
                   'question_answers.csv', 'qualitative.csv', 'question_dictionary.csv',
                   'quantitative_summary.csv']
+
+
+OFFICIAL_LEVELS = ('전체교육', '선택교육')   # quantitative_summary 상위 집계 행 (ALL / SELECTED 패키지)
+
+
+def package_scope(d):
+    """('ALL'|'SELECTED', selected_ids) from manifest.json. Packages exported before 2026-11-11 are ALL."""
+    try:
+        man = jload(os.path.join(d, 'manifest.json'))
+    except Exception:
+        return 'ALL', []
+    scope = str(man.get('export_scope') or 'ALL').upper()
+    return ('SELECTED' if scope == 'SELECTED' else 'ALL'), list(man.get('selected_education_ids') or [])
+
+
+def scope_words(scope):
+    """Display words that change with the export scope."""
+    if scope == 'SELECTED':
+        return dict(all='선택 교육 전체', other='비교 교육', common='선택 교육 공통', base='선택 교육')
+    return dict(all='전체 교육', other='그 외 교육', common='전체 공통', base='전체 교육')
 
 
 def read_csv(d, name, **kw):
@@ -133,7 +156,8 @@ def load(d, split_modes=None):
     pmap = dict(zip(sig['비식별응답ID'], sig['person']))
     s['person'] = s['비식별응답ID'].map(pmap).fillna(s['비식별응답ID'])
     a['person'] = a['비식별응답ID'].map(pmap).fillna(a['비식별응답ID'])
-    return dict(e=e, p=p, s=s, a=a, q=q, qs=qs, items=items)
+    scope, selected = package_scope(d)
+    return dict(e=e, p=p, s=s, a=a, q=q, qs=qs, items=items, scope=scope, selected=selected)
 
 
 def valid(a):
@@ -225,14 +249,16 @@ def cmp_group(row, tgt_ids, kws, tyears):
 CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩'
 
 
-def cmp_labels(e, tgt_ids, kws, tyears):
-    """Series of numbered comparison-group labels: target, similar (same year), similar (other years), others by year."""
+def cmp_labels(e, tgt_ids, kws, tyears, scope='ALL'):
+    """Series of numbered comparison-group labels: target, similar (same year), similar (other years), others by year.
+    In a SELECTED package the non-target rows are the staff-chosen comparison educations ('비교 교육')."""
+    other = '비교 교육' if scope == 'SELECTED' else '그 외'
     def base(r):
         if r['교육ID'] in tgt_ids: return (0, '', '대상 교육')
         name = f"{r['교육명']} {r['serkey']}"
         if kws and any(k.lower() in name.lower() for k in kws):
             return (1 if r['yr'] in tyears else 2, r['yr'], f"유사 주제 {r['yr']}")
-        return (3, r['yr'], f"그 외 {r['yr']}")
+        return (3, r['yr'], f"{other} {r['yr']}")
     b = e.apply(base, axis=1)
     order = sorted(set(b))
     num = {k: CIRCLED[i] + ' ' + k[2] for i, k in enumerate(order)}

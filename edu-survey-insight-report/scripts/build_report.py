@@ -29,7 +29,8 @@ def main():
     content = jload(o.content); cb = jload(o.codebook)
     D = load(ins['pkg_dir'], ins['split_modes']); e, s, a = D['e'], D['s'], D['a']
     T = set(tgt['survey_ids'])
-    e['cmp'] = cmp_labels(e, T, tgt['similar_keywords'], tgt['years'])
+    scope = D['scope']; W_ = scope_words(scope)
+    e['cmp'] = cmp_labels(e, T, tgt['similar_keywords'], tgt['years'], scope)
     sername = e.groupby('ser')['교육명'].first().astype(str).str.replace(r'-\d+$', '', regex=True).to_dict()
     edus = []
     for _, r in e.iterrows():
@@ -74,7 +75,8 @@ def main():
                 codeLabel={c['code']: c['label'] for c in cb['codes']}, codePol={c['code']: c['polarity'] for c in cb['codes']},
                 official=[dict(metric=c['metric'], n=c['official_n'], mean=c['official_mean'], eqw=c['official_eqw']) for c in QR['official_check']],
                 target=dict(label=tgt['label'], ids=tgt['survey_ids']),
-                cmpNote='비교군: ' + ' · '.join(groups) + (f" (유사 주제 키워드: {', '.join(tgt['similar_keywords'])})" if tgt['similar_keywords'] else '') + '. 운영방식과 대상이 서로 달라 직접 우열 비교가 아닌 참고용입니다.',
+                scope=dict(mode=scope, words=W_, n=int(len(e)), officialLevel=QR.get('official_level') or '전체교육'),
+                cmpNote='비교군: ' + ' · '.join(groups) + (f" (유사 주제 키워드: {', '.join(tgt['similar_keywords'])})" if tgt['similar_keywords'] else '') + ('. 선택 교육 데이터셋이므로 비교군은 담당자가 함께 고른 교육뿐입니다(전체 교육 아님).' if scope == 'SELECTED' else '') + '. 운영방식과 대상이 서로 달라 직접 우열 비교가 아닌 참고용입니다.',
                 codingNote=f"패키지 코딩 상태 그대로 사용하지 않음 → 포함 원문 {len(qual)}행 전수 검토, 수작업 수정 {QF['n_overrides']}건 ({QF['codebook']})",
                 generated=datetime.date.today().isoformat())
     js = lambda x: json.dumps(x, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
