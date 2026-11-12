@@ -1,4 +1,4 @@
-# edu-survey-insight-report
+# [Claude Skill용]edu-survey-insight-report
 
 **학술정보교육 설문 정량·정성 통합분석 + 인터랙티브 HTML 보고서 생성 Claude Skill**
 
